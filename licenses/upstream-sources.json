@@ -1,0 +1,17 @@
+[
+  {
+    "name": "viz-js-3.30.0.tar.gz",
+    "source": "https://api.github.com/repos/mdaines/viz-js/tarball/99da545270e6e7b127a5c7ba65974b8a604a6358",
+    "sha256": "4c0cef3141d2e6fdf1061d73b759c283f9c7b45dc6a30d17c09dd3e252318428"
+  },
+  {
+    "name": "graphviz-16.0.0.tar.gz",
+    "source": "https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/16.0.0/graphviz-16.0.0.tar.gz",
+    "sha256": "36a1de1aaf5a2023b14f95170a5f8f0b12522d1c305b517fc261966597050749"
+  },
+  {
+    "name": "expat-2.8.4.tar.gz",
+    "source": "https://github.com/libexpat/libexpat/releases/download/R_2_8_4/expat-2.8.4.tar.gz",
+    "sha256": "b8ece2437692dad44d851c4532723390a5a330990007706be9c8d2b90d294f36"
+  }
+]

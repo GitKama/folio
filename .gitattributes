@@ -1,0 +1,11 @@
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.zip binary
+*.exe binary
+*.woff* binary
+*.ttf binary
+# Preserve verbatim upstream license text and intentional Markdown hard breaks.
+THIRD_PARTY_NOTICES.txt -whitespace
+licenses/*.txt -whitespace
+samples/*.md whitespace=-blank-at-eol

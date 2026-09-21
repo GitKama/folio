@@ -1,0 +1,28 @@
+name: Bug report
+description: Report a reproducible Folio problem
+title: "[Bug]: "
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Folio and Windows versions
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the view and selected Markdown format.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: Minimal synthetic Markdown or screenshot
+      description: Remove private content and paths. Use private security reporting for vulnerabilities.

@@ -1,0 +1,107 @@
+{
+  "version": "1.0.0",
+  "verifiedAt": "2026-09-21T10:13:40.379Z",
+  "unitTests": {
+    "passed": 30,
+    "failed": 0
+  },
+  "packagedChecks": [
+    {
+      "name": "Production application opens the initial local fixture",
+      "status": "passed"
+    },
+    {
+      "name": "Chromium and preload security boundaries are enabled",
+      "status": "passed"
+    },
+    {
+      "name": "Renderer bridge refuses unauthorized links and asset capabilities",
+      "status": "passed"
+    },
+    {
+      "name": "Core Markdown, GFM tables, tasks and notes render",
+      "status": "passed"
+    },
+    {
+      "name": "Source views preserve the original and dialect profiles change interpretation",
+      "status": "passed"
+    },
+    {
+      "name": "Source and code Copy buttons use the native bridge without broad clipboard permission",
+      "status": "passed"
+    },
+    {
+      "name": "Mathematics and both diagram engines render locally",
+      "status": "passed"
+    },
+    {
+      "name": "Callouts and local SVG, PNG and wiki-image embeds render",
+      "status": "passed"
+    },
+    {
+      "name": "Hostile HTML remains inert and executable attributes are stripped",
+      "status": "passed"
+    },
+    {
+      "name": "Outline targets exist and duplicate headings have unique IDs",
+      "status": "passed"
+    },
+    {
+      "name": "Find highlights matches and a theme change preserves readable content",
+      "status": "passed"
+    },
+    {
+      "name": "Standalone HTML exports through the actual UI",
+      "status": "passed"
+    },
+    {
+      "name": "Exported HTML reopens independently with images and diagrams",
+      "status": "passed"
+    },
+    {
+      "name": "PDF exports through the actual UI and contains valid pages",
+      "status": "passed"
+    },
+    {
+      "name": "Wiki links open their local Markdown target",
+      "status": "passed"
+    },
+    {
+      "name": "Native Open command loads another local document",
+      "status": "passed"
+    },
+    {
+      "name": "Changes to an opened local file reload automatically",
+      "status": "passed"
+    },
+    {
+      "name": "A native file input crosses the dropped-file preload bridge",
+      "status": "passed"
+    },
+    {
+      "name": "Unsupported runtime content stays inert and invalid diagrams do not stop reading",
+      "status": "passed"
+    },
+    {
+      "name": "Desktop and narrow layouts remain usable without page overflow",
+      "status": "passed"
+    },
+    {
+      "name": "Welcome and dark reading screenshots are captured",
+      "status": "passed"
+    },
+    {
+      "name": "No uncaught renderer exceptions occurred",
+      "status": "passed"
+    }
+  ],
+  "portable": {
+    "passed": true,
+    "bridge": "object",
+    "node": "undefined",
+    "math": 1,
+    "diagrams": 1
+  },
+  "licenseFilesPresent": true,
+  "installerExecuted": false
+}

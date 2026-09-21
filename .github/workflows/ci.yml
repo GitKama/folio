@@ -1,0 +1,60 @@
+name: Windows CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Package application directory
+        run: npx --no-install electron-builder --win --x64 --dir
+      - name: Verify packaged viewer
+        shell: pwsh
+        run: |
+          $env:FOLIO_TEST_EXECUTABLE = (Resolve-Path release/win-unpacked/Folio.exe).Path
+          $env:FOLIO_TEST_RESULTS_DIR = Join-Path $PWD 'test-results/packaged'
+          npm run test:desktop
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify packaged editor when available
+        shell: pwsh
+        run: |
+          $package = Get-Content package.json | ConvertFrom-Json
+          if ($package.scripts.'test:editor') {
+            $env:FOLIO_TEST_EXECUTABLE = (Resolve-Path release/win-unpacked/Folio.exe).Path
+            $env:FOLIO_EDITOR_RESULTS = Join-Path $PWD 'test-results/editor-packaged'
+            npm run test:editor
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+      - name: Keep verification reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: verification-${{ github.sha }}
+          path: |
+            test-results/packaged/*.json
+            test-results/packaged/*.png
+            test-results/editor-packaged/*.json
+            test-results/editor-packaged/*.png
+          if-no-files-found: warn
+          retention-days: 14

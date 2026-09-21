@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="160" viewBox="0 0 640 160" role="img" aria-labelledby="title desc">
+  <title id="title">A local Markdown reading workflow</title>
+  <desc id="desc">Three cards connected from text to viewer to portable document.</desc>
+  <rect width="640" height="160" rx="20" fill="#eef4f1"/>
+  <g font-family="Arial, sans-serif" font-size="18" text-anchor="middle">
+    <rect x="24" y="48" width="160" height="64" rx="12" fill="#204d42"/>
+    <rect x="240" y="48" width="160" height="64" rx="12" fill="#347c68"/>
+    <rect x="456" y="48" width="160" height="64" rx="12" fill="#204d42"/>
+    <g fill="#fff"><text x="104" y="86">Markdown</text><text x="320" y="86">Folio</text><text x="536" y="86">Read anywhere</text></g>
+  </g>
+  <g stroke="#347c68" stroke-width="4" fill="none"><path d="M190 80h36m-9-8 9 8-9 8"/><path d="M406 80h36m-9-8 9 8-9 8"/></g>
+</svg>
