@@ -6,9 +6,21 @@ Download a Windows x64 build from [Releases](https://github.com/GitKama/folio/re
 
 ## Open and read
 
-Use Ctrl+O, Open document, drag and drop, or Paste Markdown. Read shows the rendered document. Split places source beside the preview. Source displays the original Markdown. In version 1.0, source is read-only.
+Use Ctrl+O, Open document, drag and drop, or Paste Markdown. Read shows the rendered document. Split places source beside the preview. Source displays the original Markdown. In 1.1, Split and Source are editable; version 1.0 is read-only.
 
 The outline navigates headings. Ctrl+F searches rendered text; Enter/Shift+Enter move between matches. Esc closes panels. The Format selector changes interpretation without changing the file. Preferences and recent paths stay in the local application profile.
+
+## Edit and save (1.1)
+
+Type in Split or Source. Split updates after a short pause. Ctrl+N starts a new document; Ctrl+Z/Ctrl+Y undo and redo text edits. A dot in the title and an Unsaved changes label show pending work.
+
+Use Ctrl+S or the toolbar Save icon. Ctrl+Shift+S, File → Save As, or the source footer saves a copy and makes it the active document. New and pasted documents can be saved to real Markdown files.
+
+Closing or switching documents offers Save, Discard and Cancel. Canceling or failing a save keeps the draft open. If a file changes externally while you edit, Folio retains your draft; Save offers a copy, replacement of the disk version, or Cancel.
+
+Normal Save preserves supported UTF-8/UTF-16/Windows-1252 encoding and the original line-ending convention. Save As creates UTF-8. Characters unavailable in Windows-1252 require a UTF-8 copy. Moving a copy to another folder does not relocate images or rewrite relative links.
+
+Edits are not autosaved. Normal close prompts do not protect against crashes, forced termination or power loss.
 
 ## Export
 

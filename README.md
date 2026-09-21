@@ -1,6 +1,6 @@
 <p align="center"><img src="public/icon.png" width="88" alt="Folio icon"></p>
 <h1 align="center">Folio</h1>
-<p align="center"><strong>Markdown, clearly.</strong><br>A standalone Windows reader for documents, diagrams, and the details in between.</p>
+<p align="center"><strong>Markdown, clearly.</strong><br>A standalone Windows reader and editor for documents, diagrams, and the details in between.</p>
 <p align="center">
 <a href="https://github.com/GitKama/folio/releases"><img alt="GitHub release" src="https://img.shields.io/github/v/release/GitKama/folio"></a>
 <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/Folio_code-MIT-317768"></a>
@@ -9,7 +9,7 @@
 </p>
 <p align="center"><a href="#download">Download</a> · <a href="docs/getting-started.md">User guide</a> · <a href="COMPATIBILITY.md">Markdown support</a> · <a href="CONTRIBUTING.md">Contribute</a></p>
 
-![Folio reading a Markdown document](docs/images/reader.png)
+![Folio editing Markdown beside a live preview](docs/images/editor.png)
 
 ## Download
 
@@ -17,9 +17,9 @@
 
 | Download | Use it for |
 | --- | --- |
-| [Portable executable](https://github.com/GitKama/folio/releases/download/v1.0.0/Folio-1.0.0-win-x64.exe) | Launch without installing |
-| [Windows installer](https://github.com/GitKama/folio/releases/download/v1.0.0/Folio-1.0.0-Setup-x64.exe) | Per-user installation and shortcuts |
-| [Source code](https://github.com/GitKama/folio/releases/tag/v1.0.0) | Inspect, build, or change Folio |
+| [Portable executable](https://github.com/GitKama/folio/releases/download/v1.1.0/Folio-1.1.0-win-x64.exe) | Launch without installing |
+| [Windows installer](https://github.com/GitKama/folio/releases/download/v1.1.0/Folio-1.1.0-Setup-x64.exe) | Per-user installation and shortcuts |
+| [Source code](https://github.com/GitKama/folio/releases/tag/v1.1.0) | Inspect, build, or change Folio |
 
 Builds are **unsigned**. Windows may show an unknown-publisher warning. Release pages include SHA-256 checksums, verification results, and license information. Close an older Folio process before launching a different version. Updates are manual; Folio does not run an updater or background service.
 
@@ -31,13 +31,16 @@ Builds are **unsigned**. Windows may show an unknown-publisher warning. Release 
 - **Portable exports:** self-contained HTML and PDF, including supported images, math, and rendered diagrams.
 - **Local by default:** no account, telemetry, or document upload. Remote images are opt-in. External web links open only when followed.
 
-Version 1.0 is a viewer: Source is read-only. See the [release history](CHANGELOG.md) for changes between versions.
+**New in 1.1:** edit in Split or Source with live preview, native undo/redo, Save and Save As. Unsaved-change prompts and external-file conflict handling protect ordinary editing workflows. There is no autosave or crash-recovery store.
+
+[Version 1.0](https://github.com/GitKama/folio/releases/tag/v1.0.0) remains available as the original reader. See the [release history](CHANGELOG.md).
 
 ## Quick start
 
 1. Open a Markdown file with **Ctrl+O**, drag and drop, or Paste Markdown.
 2. Choose **Read**, **Split**, or **Source**. Try another Format if a dialect looks different.
-3. Search with **Ctrl+F**, navigate with the outline, or use Export for HTML/PDF.
+3. Type in Split or Source; **Ctrl+S** saves and **Ctrl+Shift+S** saves a copy.
+4. Search with **Ctrl+F**, navigate with the outline, or use Export for HTML/PDF.
 
 Full instructions: [Getting started](docs/getting-started.md).
 

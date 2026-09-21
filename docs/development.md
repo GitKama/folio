@@ -11,6 +11,7 @@ The npm package is marked private only to prevent accidental npm publication; Fo
 | npm start | Launch the desktop app using the built renderer |
 | npm test | Renderer and filesystem regressions |
 | npm run test:desktop | Actual Electron viewer checks |
+| npm run test:editor | Electron editing, saving and conflict checks (1.1+) |
 | npm run package | Windows portable EXE and NSIS installer |
 | npm run release:assemble | Gather verified artifacts and source archive |
 
@@ -24,6 +25,8 @@ npm run package
 $env:FOLIO_TEST_EXECUTABLE = (Resolve-Path release/win-unpacked/Folio.exe).Path
 $env:FOLIO_TEST_RESULTS_DIR = Join-Path (Get-Location) 'test-results/packaged'
 npm run test:desktop
+$env:FOLIO_EDITOR_RESULTS = Join-Path (Get-Location) 'test-results/editor-packaged'
+npm run test:editor
 node tests/portable-smoke.cjs
 npm run release:assemble
 ```

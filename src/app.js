@@ -23,6 +23,7 @@ const icons = {
   check: '<path d="m5 12 4 4L19 6"/>',
   copy: '<rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/>',
   paste: '<path d="M9 5H5v16h14V5h-4"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h6"/>',
+  save: '<path d="M4 3h13l4 4v14H3V3zM7 3v6h10V3M7 21v-8h10v8"/>',
   arrow: '<path d="M5 12h14m-5-5 5 5-5 5"/>',
   help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 4 2c-1 .7-1.5 1-1.5 3M12 17v.1"/>',
   up: '<path d="m7 14 5-5 5 5"/>',
@@ -55,6 +56,10 @@ let renderPromise = Promise.resolve();
 let headingObserver;
 let noticeTimer;
 let dragDepth = 0;
+let editTimer;
+let savedContent = demoDocument.content.replace(/\r\n|\r/g, '\n');
+const normalized = text => text.replace(/\r\n|\r/g, '\n');
+const isDirty = () => Boolean(state.doc.unsaved) || normalized(state.doc.content) !== savedContent;
 const bridge = window.folio;
 
 document.getElementById('app').innerHTML = `
@@ -63,6 +68,7 @@ document.getElementById('app').innerHTML = `
       <div class="brand"><span class="brand-mark">${icon('folio')}</span><span>folio<span class="brand-dot">.</span></span><span class="brand-caption">A CLEARER VIEW</span></div>
       <button class="open-button" id="open-file" title="Open file" aria-label="Open file">${icon('plus')}<span>Open document</span><kbd>Ctrl O</kbd></button>
       <button class="paste-link" id="paste-open">${icon('paste')}<span>Paste Markdown</span></button>
+      <button class="paste-link" id="new-document" title="New Markdown (Ctrl+N)">${icon('plus')}<span>New document</span></button>
       <div class="sidebar-scroll">
         <details class="sidebar-section" open>
           <summary><span>IN THIS DOCUMENT</span>${icon('chevron')}</summary>
@@ -82,6 +88,7 @@ document.getElementById('app').innerHTML = `
         <div class="toolbar-leading"><button class="icon-button" id="sidebar-toggle" title="Toggle navigation" aria-label="Toggle navigation">${icon('sidebar')}</button><div class="file-identity">${icon('file')}<span id="document-title">Welcome to Folio.md</span><span class="file-modified" id="file-modified" title="The document reloaded from disk"></span></div></div>
         <div class="view-switch" role="group" aria-label="Document view"><button data-view="read" aria-pressed="true">Read</button><button data-view="split" aria-pressed="false">Split</button><button data-view="source" aria-pressed="false">Source</button></div>
         <div class="toolbar-actions">
+          <button class="icon-button" id="save-document" title="Save Markdown (Ctrl+S)" aria-label="Save Markdown">${icon('save')}</button>
           <button class="icon-button" id="search-toggle" title="Find in document (Ctrl+F)" aria-label="Find in document">${icon('search')}</button>
           <button class="icon-button" id="theme-toggle" title="Switch to dark theme" aria-label="Switch to dark theme">${icon('moon')}</button>
           <button class="icon-button" id="settings-toggle" title="Reading settings" aria-label="Reading settings" aria-expanded="false">${icon('settings')}</button>
@@ -93,7 +100,7 @@ document.getElementById('app').innerHTML = `
       <div class="search-bar" id="search-bar" hidden><div class="search-field">${icon('search')}<input id="search-input" type="search" placeholder="Find in this document…" aria-label="Search document" autocomplete="off"/><span id="search-count" aria-live="polite"></span></div><button class="icon-button" id="search-prev" title="Previous match (Shift+Enter)" aria-label="Previous match">${icon('up')}</button><button class="icon-button" id="search-next" title="Next match (Enter)" aria-label="Next match">${icon('down')}</button><button class="icon-button" id="search-close" title="Close search (Esc)" aria-label="Close search">${icon('close')}</button></div>
       <div class="document-bar"><div class="document-context"><span class="context-dot"></span><span id="document-location">YOUR READING SPACE</span></div><div class="document-options"><label class="profile-selector" title="Choose how Markdown is interpreted"><span>Format</span><select id="profile-select" aria-label="Markdown format">${profiles.map(profile => `<option value="${escapeHtml(profile.id)}">${escapeHtml(profileLabel(profile.id))}</option>`).join('')}</select>${icon('chevron')}</label><button class="compatibility-button" id="compatibility-toggle" title="Document details and compatibility" aria-label="Document details and compatibility" aria-expanded="false">${icon('info')}<span id="compatibility-label">Document details</span><span id="warning-count" hidden></span></button></div></div>
       <main class="workspace" id="workspace">
-        <section class="source-pane" id="source-pane" aria-label="Markdown source"><div class="source-heading"><span>MARKDOWN SOURCE</span><button class="icon-button" id="copy-source" title="Copy Markdown source" aria-label="Copy Markdown source">${icon('copy')}</button></div><textarea id="source-content" spellcheck="false" readonly aria-label="Read-only Markdown source" wrap="off"></textarea><div class="source-foot">Source preview <span>·</span> <button id="source-paste">Paste another document</button></div></section>
+        <section class="source-pane" id="source-pane" aria-label="Markdown source"><div class="source-heading"><span>MARKDOWN SOURCE · EDITABLE</span><button class="icon-button" id="copy-source" title="Copy Markdown source" aria-label="Copy Markdown source">${icon('copy')}</button></div><textarea id="source-content" spellcheck="false" aria-label="Markdown editor" maxlength="12582912" wrap="off"></textarea><div class="source-foot"><span id="save-state" role="status">Saved</span><span>·</span><button id="save-as">Save As…</button><span>·</span><button id="source-paste">Paste another document</button></div></section>
         <div class="reader-scroll" id="reader-scroll"><div class="reading-paper"><div class="document-kicker" id="document-kicker"><span class="kicker-line"></span><span id="kicker-label">THE FOLIO FIELD GUIDE</span></div><article class="folio-document" id="document-content" tabindex="-1" aria-label="Rendered Markdown document"></article><div class="document-end"><span></span>${icon('folio')}<span></span></div></div></div>
         <aside class="details-panel" id="details-panel" hidden aria-label="Document details"><div class="panel-heading"><h2>Document details</h2><button class="icon-button" id="details-close" title="Close details" aria-label="Close document details">${icon('close')}</button></div><div id="details-content"></div></aside>
       </main>
@@ -104,7 +111,7 @@ document.getElementById('app').innerHTML = `
     <div class="toast" id="toast" role="status" hidden></div>
     <input type="file" id="file-input" accept=".md,.markdown,.mdown,.mkd,.mkdn,.mdx,.qmd,.rmd,.txt" hidden/>
     <dialog id="paste-dialog" class="folio-dialog"><form method="dialog"><div class="dialog-heading"><div><span class="popover-eyebrow">A SPACE FOR A FRAGMENT</span><h2>Paste your Markdown</h2></div><button class="icon-button" value="cancel" aria-label="Close paste dialog">${icon('close')}</button></div><label class="sr-only" for="paste-content">Markdown to preview</label><textarea id="paste-content" placeholder="# Something worth reading\n\nPaste your Markdown here…" spellcheck="false"></textarea><div class="dialog-actions"><span>Preview a document in Folio</span><button value="cancel" class="quiet-button">Cancel</button><button id="paste-submit" type="button" class="primary-button">Open preview ${icon('arrow')}</button></div></form></dialog>
-    <dialog id="help-dialog" class="folio-dialog help-dialog"><form method="dialog"><div class="dialog-heading"><div><span class="popover-eyebrow">A LITTLE GUIDANCE</span><h2>At home in Folio</h2></div><button class="icon-button" aria-label="Close help">${icon('close')}</button></div><div class="help-body"><p>A standalone reader for CommonMark, GitHub Markdown, Obsidian notes, and extended Markdown.</p><div class="shortcut-row"><span>Open a document</span><kbd>Ctrl O</kbd></div><div class="shortcut-row"><span>Find in the document</span><kbd>Ctrl F</kbd></div><div class="shortcut-row"><span>Next / previous search match</span><span><kbd>Enter</kbd> / <kbd>Shift Enter</kbd></span></div><div class="shortcut-row"><span>Close a panel or search</span><kbd>Esc</kbd></div><h3>When a document looks different</h3><p>Try its matching format in the toolbar. Dialects can interpret the same syntax differently; document details show supported features and compatibility notes.</p><p>Executable content such as MDX components and notebook code needs its original runtime. Folio displays the readable content and surfaces detected limitations.</p><p class="help-version">FOLIO <span>·</span> Markdown, clearly.</p></div><div class="dialog-actions"><button class="primary-button">Back to reading ${icon('arrow')}</button></div></form></dialog>
+    <dialog id="help-dialog" class="folio-dialog help-dialog"><form method="dialog"><div class="dialog-heading"><div><span class="popover-eyebrow">A LITTLE GUIDANCE</span><h2>At home in Folio</h2></div><button class="icon-button" aria-label="Close help">${icon('close')}</button></div><div class="help-body"><p>A standalone reader and editor for CommonMark, GitHub Markdown, Obsidian notes, and extended Markdown.</p><div class="shortcut-row"><span>Open a document</span><kbd>Ctrl O</kbd></div><div class="shortcut-row"><span>Save Markdown</span><kbd>Ctrl S</kbd></div><div class="shortcut-row"><span>Save As</span><kbd>Ctrl Shift S</kbd></div><div class="shortcut-row"><span>New document</span><kbd>Ctrl N</kbd></div><div class="shortcut-row"><span>Undo / redo edits</span><span><kbd>Ctrl Z</kbd> / <kbd>Ctrl Y</kbd></span></div><div class="shortcut-row"><span>Find in the document</span><kbd>Ctrl F</kbd></div><div class="shortcut-row"><span>Next / previous search match</span><span><kbd>Enter</kbd> / <kbd>Shift Enter</kbd></span></div><div class="shortcut-row"><span>Close a panel or search</span><kbd>Esc</kbd></div><h3>When a document looks different</h3><p>Try its matching format in the toolbar. Dialects can interpret the same syntax differently; document details show supported features and compatibility notes.</p><p>Executable content such as MDX components and notebook code needs its original runtime. Folio displays the readable content and surfaces detected limitations.</p><p class="help-version">FOLIO <span>·</span> Markdown, clearly.</p></div><div class="dialog-actions"><button class="primary-button">Back to reading ${icon('arrow')}</button></div></form></dialog>
   </div>`;
 
 document.querySelectorAll('[id]').forEach(element => uiElements.set(element.id, element));
@@ -143,8 +150,48 @@ function notify(message, isError = false) {
 }
 
 function setStatus(message, busy = false) {
-  byId('status-message').textContent = message;
+  byId('status-message').textContent = !busy && isDirty() ? (state.conflict ? 'Changed on disk · your edits are kept' : 'Unsaved changes · Ctrl+S to save') : message;
   byId('status-dot').classList.toggle('busy', busy);
+}
+
+function updateEditorState() {
+  const dirty = isDirty();
+  byId('document-title').textContent = state.doc.name;
+  byId('document-title').title = state.doc.path || state.doc.name;
+  document.title = `${dirty ? '● ' : ''}${state.doc.name} · Folio`;
+  byId('file-modified').classList.toggle('visible', dirty);
+  byId('file-modified').title = dirty ? 'Unsaved changes' : 'Saved';
+  byId('save-state').textContent = dirty ? 'Unsaved changes' : state.doc.path ? 'Saved' : 'Not saved to disk';
+  byId('save-document').classList.toggle('has-changes', dirty);
+}
+
+async function saveMarkdown(saveAs = false) {
+  if (state.saving || state.nativeBusy) return;
+  if (!bridge?.saveDocument) { notify('Use the Folio desktop app to save Markdown files.', true); return; }
+  state.saving = true;
+  try {
+    const result = await bridge.saveDocument(saveAs);
+    if (result?.document) notify(`Markdown saved to ${result.document.path}`);
+  } catch (error) { notify(`Could not save: ${error.message || error}`, true); }
+  finally { state.saving = false; updateEditorState(); }
+}
+
+async function replaceMemoryDocument(doc) {
+  try {
+    if (bridge?.replaceWithMemoryDocument) {
+      const result = await bridge.replaceWithMemoryDocument(doc);
+      if (!result) return false;
+      await acceptDocument({ ...result, ...(doc === demoDocument ? { welcome: true } : {}) });
+    } else {
+      if (isDirty() && !window.confirm('Discard unsaved changes?')) return false;
+      await acceptDocument(doc);
+    }
+    return true;
+  } catch (error) { notify(`Could not open the document: ${error.message || error}`, true); return false; }
+}
+
+async function newDocument() {
+  if (await replaceMemoryDocument({ name: 'Untitled.md', content: '', path: null, baseUrl: null })) { setView('split'); byId('source-content').focus(); }
 }
 
 function togglePopover(id, triggerId, force) {
@@ -232,12 +279,9 @@ async function renderCurrent({ preserveScroll = false } = {}) {
     }
     article.innerHTML = result.html;
     article.dataset.theme = state.theme;
-    byId('source-content').value = state.doc.content;
-    byId('document-title').textContent = state.doc.name;
-    byId('document-title').title = state.doc.path || state.doc.name;
-    document.title = `${state.doc.name} · Folio`;
-    byId('document-location').textContent = state.doc === demoDocument ? 'YOUR READING SPACE' : state.doc.path ? 'LOCAL DOCUMENT' : 'PASTED DOCUMENT';
-    byId('kicker-label').textContent = state.doc === demoDocument ? 'THE FOLIO FIELD GUIDE' : 'A MOMENT TO READ';
+    updateEditorState();
+    byId('document-location').textContent = state.doc === demoDocument || state.doc.welcome ? 'YOUR READING SPACE' : state.doc.path ? 'LOCAL DOCUMENT' : 'UNSAVED DOCUMENT';
+    byId('kicker-label').textContent = state.doc === demoDocument || state.doc.welcome ? 'THE FOLIO FIELD GUIDE' : 'A MOMENT TO READ';
     byId('word-count').textContent = `${Number(result.stats?.words || 0).toLocaleString()} words`;
     byId('reading-time').textContent = `${Math.max(1, Number(result.stats?.readingMinutes) || 1)} min read`;
     byId('format-status').textContent = profileLabel(state.profile);
@@ -256,12 +300,13 @@ async function renderCurrent({ preserveScroll = false } = {}) {
     if (generation !== renderGeneration) return;
     setStatus('This document could not be rendered');
     article.innerHTML = `<div class="render-error"><h1>A small interruption.</h1><p>${escapeHtml(error.message || error)}</p><p>You can still inspect the Markdown in Source view.</p></div>`;
-    byId('source-content').value = state.doc.content;
     notify(`Rendering failed: ${error.message || error}`, true);
   }
 }
 
 function render(options) {
+  clearTimeout(editTimer);
+  editTimer = null;
   renderPromise = renderCurrent(options);
   return renderPromise;
 }
@@ -277,11 +322,17 @@ async function refreshRecent() {
   } catch { byId('recent-files').innerHTML = '<p class="sidebar-empty">Recent files are unavailable.</p>'; }
 }
 
-async function acceptDocument(doc, { reload = false } = {}) {
+async function acceptDocument(doc, { reload = false, saved = false, draft } = {}) {
   if (!doc || typeof doc.content !== 'string') return;
   const sameDocument = Boolean(state.doc.path && state.doc.path === doc.path);
-  state.doc = doc;
-  byId('file-modified').classList.toggle('visible', reload || sameDocument);
+  savedContent = normalized(doc.content);
+  state.doc = { ...doc, content: draft ?? doc.content };
+  state.conflict = false;
+  // Assign only on document replacement or reload; ordinary preview renders must
+  // never reset the caret, scroll position or the textarea's native undo history.
+  const editor = byId('source-content');
+  if (!saved || editor.value !== normalized(state.doc.content)) editor.value = state.doc.content;
+  updateEditorState();
   await render({ preserveScroll: reload || sameDocument });
   await refreshRecent();
   if (reload) notify('Document updated from disk.');
@@ -301,10 +352,11 @@ async function acceptDroppedFile(file) {
   try {
     if (bridge?.readDroppedFile) {
       const doc = await bridge.readDroppedFile(file);
-      if (doc) { await acceptDocument(doc); return; }
+      if (doc) await acceptDocument(doc);
+      return;
     }
     if (file.size > 30 * 1024 * 1024) throw new Error('This file is too large for the browser preview (30 MB limit).');
-    await acceptDocument({ name: file.name, path: null, baseUrl: null, content: await file.text() });
+    await replaceMemoryDocument({ name: file.name, path: null, baseUrl: null, content: await file.text() });
   } catch (error) { notify(`Could not open the document: ${error.message || error}`, true); }
 }
 
@@ -389,6 +441,8 @@ async function exportDocument(format) {
   buttons.forEach(button => { button.disabled = true; });
   setStatus(`Preparing ${format.toUpperCase()} export…`, true);
   try {
+    // Flush the debounce before snapshotting; exports always include the last edit.
+    if (editTimer) await render({ preserveScroll: true });
     await renderPromise;
     const title = String(state.result?.metadata?.title || state.doc.name.replace(/\.[^.]+$/, ''));
     const exportArticle = article.cloneNode(true);
@@ -425,16 +479,29 @@ async function exportDocument(format) {
 }
 
 byId('open-file').addEventListener('click', openFile);
+byId('save-document').addEventListener('click', () => saveMarkdown());
+byId('save-as').addEventListener('click', () => saveMarkdown(true));
+byId('new-document').addEventListener('click', newDocument);
+byId('source-content').value = state.doc.content;
+byId('source-content').addEventListener('input', event => {
+  state.doc = { ...state.doc, content: event.target.value };
+  bridge?.setDraft?.({ path: state.doc.path || null, content: state.doc.content });
+  updateEditorState();
+  setStatus('Ready to read');
+  clearTimeout(editTimer);
+  ++renderGeneration; // Invalidate any render of older text immediately.
+  editTimer = setTimeout(() => { editTimer = null; render({ preserveScroll: true }); }, 250);
+});
 byId('paste-open').addEventListener('click', openPaste);
 byId('source-paste').addEventListener('click', openPaste);
 byId('file-input').addEventListener('change', event => { const file = event.target.files?.[0]; if (file) acceptDroppedFile(file); event.target.value = ''; });
-byId('welcome-button').addEventListener('click', () => acceptDocument(demoDocument));
+byId('welcome-button').addEventListener('click', () => replaceMemoryDocument(demoDocument));
 byId('help-button').addEventListener('click', () => byId('help-dialog').showModal());
-byId('paste-submit').addEventListener('click', () => {
+byId('paste-submit').addEventListener('click', async () => {
   const content = byId('paste-content').value;
   if (!content.trim()) { byId('paste-content').focus(); return; }
   byId('paste-dialog').close();
-  acceptDocument({ name: 'Pasted document.md', path: null, baseUrl: null, content });
+  await replaceMemoryDocument({ name: 'Pasted document.md', path: null, baseUrl: null, content, unsaved: true });
 });
 byId('sidebar-toggle').addEventListener('click', () => { state.sidebar = !state.sidebar; applySettings(); persist(); });
 byId('sidebar-scrim').addEventListener('click', () => { state.sidebar = false; applySettings(); });
@@ -519,7 +586,9 @@ article.addEventListener('click', async event => {
 });
 
 document.addEventListener('keydown', event => {
-  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'o') { event.preventDefault(); openFile(); }
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') { event.preventDefault(); saveMarkdown(event.shiftKey); }
+  else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'n') { event.preventDefault(); newDocument(); }
+  else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'o') { event.preventDefault(); openFile(); }
   else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') { event.preventDefault(); toggleSearch(true); }
   else if (event.key === 'Escape') { closePanels(); toggleSearch(false); if (window.innerWidth < 900) { state.sidebar = false; applySettings(); } }
 });
@@ -546,11 +615,25 @@ window.addEventListener('blur', () => { dragDepth = 0; byId('drop-overlay').hidd
 
 bridge?.onDocument?.(doc => {
   const actual = doc?.document || doc;
-  acceptDocument(actual, { reload: Boolean(state.doc.path && state.doc.path === actual?.path) });
+  acceptDocument(actual, { saved: doc.saved, draft: doc.draft, reload: !doc.saved && Boolean(state.doc.path && state.doc.path === actual?.path) });
+});
+bridge?.onBusy?.(busy => {
+  state.nativeBusy = busy;
+  byId('source-content').readOnly = busy;
+  byId('save-document').disabled = busy;
+});
+bridge?.onConflict?.(doc => {
+  if (doc.path !== state.doc.path) return;
+  state.conflict = true;
+  setStatus('Changed on disk · your edits are kept');
+  notify('This file changed outside Folio. Your edits are kept; Save will let you choose which version to keep.', true);
 });
 bridge?.onCommand?.(command => {
   const action = typeof command === 'string' ? command : command?.command;
   if (action === 'open' || action === 'open-file') openFile();
+  else if (action === 'new') newDocument();
+  else if (action === 'save') saveMarkdown();
+  else if (action === 'save-as') saveMarkdown(true);
   else if (action === 'find' || action === 'search') toggleSearch(true);
   else if (action === 'export-html') exportDocument('html');
   else if (action === 'export-pdf') exportDocument('pdf');
@@ -568,6 +651,7 @@ async function initialize() {
   try {
     const initial = await bridge?.getInitialDocument?.();
     if (initial) await acceptDocument(initial);
+    else await replaceMemoryDocument(demoDocument);
   } catch (error) { notify(`Could not open the initial document: ${error.message || error}`, true); }
 }
 initialize();

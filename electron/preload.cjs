@@ -6,6 +6,11 @@ const subscribe = (channel, callback) => {
 };
 contextBridge.exposeInMainWorld('folio', Object.freeze({
   openFile: () => ipcRenderer.invoke('folio:open'),
+  saveDocument: (saveAs = false) => ipcRenderer.invoke('folio:save', saveAs),
+  setDraft: (draft) => ipcRenderer.send('folio:draft', draft),
+  replaceWithMemoryDocument: (doc) => ipcRenderer.invoke('folio:memory-document', doc),
+  onBusy: (callback) => subscribe('folio:busy', callback),
+  onConflict: (callback) => subscribe('folio:conflict', callback),
   openRecent: (filePath) => ipcRenderer.invoke('folio:recent-open', filePath),
   openLink: (link) => ipcRenderer.invoke('folio:link', link),
   getRecent: () => ipcRenderer.invoke('folio:recent'),

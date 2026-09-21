@@ -4,7 +4,7 @@ const fsSync = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { pathToFileURL } = require('node:url');
-const { readDocument, resolveAsset, isWithin, markdownExtensions } = require('./files.cjs');
+const { readDocument, writeDocument, getRevision, normalizeNewlines, resolveAsset, isWithin, markdownExtensions, MAX_DOCUMENT_BYTES } = require('./files.cjs');
 
 protocol.registerSchemesAsPrivileged([{ scheme: 'folio', privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true } }]);
 const testMode = process.env.FOLIO_TEST_MODE === '1';
@@ -16,6 +16,55 @@ const documents = new Map();
 const loadedRemoteImages = new Set();
 let recent = [];
 let settingsFile;
+let draft = '', actionBusy = false, allowClose = false;
+const isDirty = () => Boolean(currentDocument?.unsaved) || normalizeNewlines(draft) !== normalizeNewlines(currentDocument?.content || '');
+
+function send(channel, value) { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, value); }
+async function documentAction(action) {
+  if (actionBusy) return null;
+  actionBusy = true;
+  send('folio:busy', true);
+  try { return await action(); }
+  finally { actionBusy = false; send('folio:busy', false); }
+}
+
+async function saveDocument(saveAs = false) {
+  if (!currentDocument) return { canceled: true };
+  let destination = currentDocument.path;
+  let expectedRevision = currentDocument.revision;
+  let format = currentDocument;
+  if (!saveAs && destination) {
+    const revision = await getRevision(destination);
+    if (revision !== expectedRevision) {
+      const result = await dialog.showMessageBox(mainWindow, { type: 'warning', title: 'File changed on disk', message: 'This file changed outside Folio.', detail: 'Your edits are still open. Save a separate copy, replace the disk version, or cancel to keep editing.', buttons: ['Save a copy…', 'Replace disk version', 'Cancel'], defaultId: 0, cancelId: 2, noLink: true });
+      if (result.response === 2) return { canceled: true };
+      if (result.response === 0) saveAs = true;
+      else expectedRevision = revision;
+    }
+  }
+  if (saveAs || !destination) {
+    const result = await dialog.showSaveDialog(mainWindow, { title: 'Save Markdown as', defaultPath: destination || currentDocument.name || 'Untitled.md', filters: [{ name: 'Markdown', extensions: ['md', 'markdown', 'mdown', 'mkd', 'mkdn'] }, { name: 'Text & extended Markdown', extensions: ['txt', 'mdx', 'qmd', 'rmd'] }], properties: ['showOverwriteConfirmation', 'createDirectory'] });
+    if (result.canceled || !result.filePath) return { canceled: true };
+    destination = result.filePath;
+    expectedRevision = await getRevision(destination);
+    format = { encoding: 'UTF-8', eol: currentDocument.eol || '\n' };
+  }
+  const savedDraft = draft;
+  const doc = await writeDocument(destination, savedDraft, { expectedRevision, format });
+  // Keep edits made while the write was pending, and report the saved baseline separately.
+  await adoptDocument(doc, { preserveDraft: true });
+  if (normalizeNewlines(draft) === normalizeNewlines(savedDraft)) draft = doc.content;
+  send('folio:document', { document: doc, saved: true, draft });
+  return { document: doc };
+}
+
+async function confirmReplace() {
+  if (!isDirty()) return true;
+  const result = await dialog.showMessageBox(mainWindow, { type: 'warning', title: 'Unsaved changes', message: `Save changes to ${currentDocument?.name || 'Untitled.md'}?`, detail: 'Your changes will be lost if you discard them.', buttons: ['Save', 'Discard', 'Cancel'], defaultId: 0, cancelId: 2, noLink: true });
+  if (result.response === 2) return false;
+  if (result.response === 1) return true;
+  return !(await saveDocument())?.canceled && !isDirty();
+}
 
 const appCsp = "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src folio: data: https:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'";
 const exportCsp = "default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:; script-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
@@ -35,16 +84,24 @@ async function remember(doc) {
   await saveRecent().catch(() => {});
 }
 async function openDocument(filePath, notify = false) {
+  // Validate before asking to discard anything; re-read after the dialog.
+  await readDocument(filePath);
+  if (!(await confirmReplace())) return null;
   const doc = await readDocument(filePath);
+  await adoptDocument(doc);
+  if (notify) sendDocument(doc);
+  return doc;
+}
+async function adoptDocument(doc, { preserveDraft = false } = {}) {
   const existing = [...documents.entries()].find(([, value]) => value.path === doc.path);
   const token = existing?.[0] || crypto.randomBytes(16).toString('hex');
   doc.baseUrl = `folio://asset-${token}/`;
   documents.set(token, { path: doc.path, root: path.dirname(doc.path) });
   while (documents.size > 64) documents.delete(documents.keys().next().value);
   currentDocument = doc;
+  if (!preserveDraft) draft = doc.content;
   await remember(doc);
   watchDocument(doc.path);
-  if (notify) sendDocument(doc);
   return doc;
 }
 function watchDocument(filePath) {
@@ -54,15 +111,21 @@ function watchDocument(filePath) {
     watcher = fsSync.watch(path.dirname(filePath), { persistent: false }, (_kind, filename) => {
       if (filename && filename.toString().toLowerCase() !== path.basename(filePath).toLowerCase()) return;
       clearTimeout(watchTimer);
-      watchTimer = setTimeout(async () => {
+      const reload = async () => {
         if (currentDocument?.path !== filePath) return;
+        if (actionBusy) { watchTimer = setTimeout(reload, 350); return; }
         try {
           const update = await readDocument(filePath);
-          if (currentDocument?.path !== filePath || update.content === currentDocument.content) return;
+          if (currentDocument?.path !== filePath) return;
+          if (actionBusy) { watchTimer = setTimeout(reload, 350); return; }
+          if (update.revision === currentDocument.revision) return;
+          if (isDirty()) { send('folio:conflict', { path: filePath }); return; }
           currentDocument = { ...update, baseUrl: currentDocument.baseUrl };
+          draft = currentDocument.content;
           sendDocument(currentDocument);
         } catch { /* Atomic saves can briefly remove a file; the next filesystem event retries. */ }
-      }, 350);
+      };
+      watchTimer = setTimeout(reload, 350);
     });
   } catch { /* Manual reopen remains available for filesystems without watchers. */ }
 }
@@ -142,6 +205,16 @@ async function createWindow() {
   mainWindow.webContents.on('will-navigate', event => event.preventDefault());
   mainWindow.webContents.on('will-attach-webview', event => event.preventDefault());
   mainWindow.once('ready-to-show', () => { if (!testMode) mainWindow.show(); });
+  mainWindow.on('close', event => {
+    if (allowClose) return;
+    // Serialize close with open/save dialogs so a pending operation cannot lose edits.
+    if (actionBusy) { event.preventDefault(); return; }
+    if (!isDirty()) return;
+    event.preventDefault();
+    documentAction(async () => {
+      if (await confirmReplace()) { allowClose = true; mainWindow.close(); }
+    }).catch(error => dialog.showErrorBox('Could not save changes', error.message));
+  });
   mainWindow.on('closed', () => { mainWindow = null; watcher?.close(); });
   await mainWindow.loadURL('folio://app/index.html');
 }
@@ -151,7 +224,7 @@ if (!acquired) app.quit();
 else {
   app.on('second-instance', (_event, args) => {
     const file = args.find(arg => markdownExtensions.has(path.extname(arg).toLowerCase()) && !arg.startsWith('-'));
-    if (file) openDocument(file, true).catch(error => dialog.showErrorBox('Cannot open document', error.message));
+    if (file) documentAction(() => openDocument(file, true)).catch(error => dialog.showErrorBox('Cannot open document', error.message));
     if (mainWindow) { if (mainWindow.isMinimized()) mainWindow.restore(); mainWindow.show(); mainWindow.focus(); }
   });
   app.whenReady().then(async () => {
@@ -167,12 +240,26 @@ else {
       }
     });
     await installProtocol();
-    handle('folio:open', chooseFile);
+    handle('folio:open', () => documentAction(chooseFile));
+    ipcMain.on('folio:draft', (event, value) => {
+      trusted(event);
+      if (!value || typeof value.content !== 'string' || value.content.length > MAX_DOCUMENT_BYTES || value.path !== (currentDocument?.path || null)) return;
+      draft = value.content;
+    });
+    handle('folio:save', saveAs => documentAction(() => saveDocument(saveAs === true)));
+    handle('folio:memory-document', doc => documentAction(async () => {
+      if (!doc || typeof doc.content !== 'string' || doc.content.length > MAX_DOCUMENT_BYTES || typeof doc.name !== 'string' || doc.name.length > 255) throw new Error('Invalid document.');
+      if (!(await confirmReplace())) return null;
+      watcher?.close(); clearTimeout(watchTimer);
+      currentDocument = { name: doc.name, content: doc.content, path: null, baseUrl: null, encoding: 'UTF-8', unsaved: doc.unsaved === true };
+      draft = doc.content;
+      return currentDocument;
+    }));
     handle('folio:recent', () => recent);
     handle('folio:initial', () => initialDocument);
-    handle('folio:recent-open', filePath => { if (!recent.some(r => r.path === filePath)) throw new Error('Choose this file using Open file.'); return openDocument(filePath); });
-    handle('folio:drop', filePath => openDocument(filePath));
-    handle('folio:link', openLink);
+    handle('folio:recent-open', filePath => documentAction(() => { if (!recent.some(r => r.path === filePath)) throw new Error('Choose this file using Open file.'); return openDocument(filePath); }));
+    handle('folio:drop', filePath => documentAction(() => openDocument(filePath)));
+    handle('folio:link', link => documentAction(() => openLink(link)));
     handle('folio:remote-images', value => { remoteImages = value === true; return remoteImages; });
     handle('folio:copy', value => {
       if (typeof value !== 'string' || value.length > 12 * 1024 * 1024) throw new Error('This text is too large to copy.');
@@ -206,11 +293,11 @@ else {
     await createWindow();
     const command = value => mainWindow?.webContents.send('folio:command', value);
     Menu.setApplicationMenu(Menu.buildFromTemplate([
-      { label: 'File', submenu: [{ label: 'Open Markdown…', accelerator: 'CmdOrCtrl+O', click: () => chooseFile().then(doc => doc && sendDocument(doc)).catch(error => dialog.showErrorBox('Cannot open document', error.message)) }, { label: 'Export HTML…', click: () => command('export-html') }, { label: 'Export PDF…', accelerator: 'CmdOrCtrl+P', click: () => command('export-pdf') }, { type: 'separator' }, { role: 'quit' }] },
-      { label: 'Edit', submenu: [{ role: 'copy' }, { role: 'selectAll' }, { label: 'Find in document', accelerator: 'CmdOrCtrl+F', click: () => command('find') }] },
+      { label: 'File', submenu: [{ label: 'New Markdown', accelerator: 'CmdOrCtrl+N', click: () => command('new') }, { label: 'Open Markdown…', accelerator: 'CmdOrCtrl+O', click: () => command('open') }, { label: 'Save', accelerator: 'CmdOrCtrl+S', click: () => command('save') }, { label: 'Save As…', accelerator: 'CmdOrCtrl+Shift+S', click: () => command('save-as') }, { type: 'separator' }, { label: 'Export HTML…', click: () => command('export-html') }, { label: 'Export PDF…', accelerator: 'CmdOrCtrl+P', click: () => command('export-pdf') }, { type: 'separator' }, { role: 'quit' }] },
+      { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }, { label: 'Find in document', accelerator: 'CmdOrCtrl+F', click: () => command('find') }] },
       { label: 'View', submenu: [{ label: 'Reading view', click: () => command('read') }, { label: 'Split view', click: () => command('split') }, { label: 'Source view', click: () => command('source') }, { type: 'separator' }, { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }, { role: 'togglefullscreen' }] }
     ]));
-    if (testMode) globalThis.__FOLIO_TEST__ = { exportHtml: (p, html) => writeExport('html', html, p), exportPdf: (p, html) => writeExport('pdf', html, p), getSecurity: () => mainWindow.webContents.getLastWebPreferences(), openFile: p => openDocument(p, true) };
+    if (testMode) globalThis.__FOLIO_TEST__ = { exportHtml: (p, html) => writeExport('html', html, p), exportPdf: (p, html) => writeExport('pdf', html, p), getSecurity: () => mainWindow.webContents.getLastWebPreferences(), openFile: p => documentAction(() => openDocument(p, true)), getEditorState: () => ({ dirty: isDirty(), busy: actionBusy, path: currentDocument?.path }) };
   }).catch(error => { console.error(error); app.exit(1); });
   app.on('window-all-closed', () => app.quit());
 }

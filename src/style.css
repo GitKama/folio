@@ -108,6 +108,7 @@ kbd { font-family: 'Segoe UI', sans-serif; font-size: 10px; font-weight: 500; le
 #document-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .file-modified { display: none; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
 .file-modified.visible { display: block; }
+.toolbar-actions .has-changes { color: var(--accent); background: var(--accent-soft); }
 .view-switch { display: flex; flex: 0 0 auto; gap: 1px; padding: 3px; border: 1px solid var(--line); border-radius: 6px; background: var(--subtle-bg); }
 .view-switch button { font-size: 10px; font-weight: 600; line-height: 1; padding: 7px 13px; border-radius: 4px; color: var(--text-muted); }
 .view-switch button:hover { color: var(--text); }

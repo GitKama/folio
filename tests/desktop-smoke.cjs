@@ -127,7 +127,7 @@ async function exportViaUi(format, filePath) {
       await page.getByRole('button', { name: 'Split', exact: true }).click();
       await page.locator('#source-pane').waitFor({ state: 'visible' });
       assert.match(await page.locator('#source-content').inputValue(), /\[\[Linked Note\|the companion note\]\]/);
-      assert.equal(await page.locator('#source-content').getAttribute('readonly'), '');
+      assert.equal(await page.locator('#source-content').getAttribute('readonly'), null);
       await page.getByRole('button', { name: 'Source', exact: true }).click();
       assert.equal(await page.locator('#document-content').isVisible(), false);
       await page.getByRole('button', { name: 'Read', exact: true }).click();

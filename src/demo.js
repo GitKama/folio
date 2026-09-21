@@ -13,7 +13,7 @@ tags: [Markdown, Field notes, Getting started]
 A thoughtful space for documents, ideas, and all the details in between. Open a file and settle in — your outline, diagrams, and equations come along.
 
 > [!TIP] Make yourself at home
-> Drop a Markdown file anywhere, use **Open document**, or press **Ctrl + O**. Try **Split** to see how these pages are written.
+> Drop a Markdown file anywhere, use **Open document**, or press **Ctrl + O**. Try **Split** to edit the Markdown beside a live preview, or **Source** for focused writing. Press **Ctrl + S** to save; **Ctrl + Shift + S** saves a copy.
 
 ## The useful details
 

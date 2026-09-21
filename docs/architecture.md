@@ -26,3 +26,9 @@ flowchart LR
 The renderer enables context isolation and sandboxing and disables Node integration. IPC checks the sender and main frame. HTML/SVG is sanitized; navigation and webviews are blocked. Asset capabilities restrict local images, with realpath checks for junctions. Remote images are opt-in.
 
 PDF uses a restricted renderer. Diagrams have count/size limits; Graphviz runs in a worker with a timeout. These are practical, tested boundaries, not a formal security certification.
+
+## Editing in 1.1
+
+The renderer keeps text separate from its saved baseline. Preview rendering is debounced and does not reset the textarea, caret or native undo history. Pending previews are flushed before export.
+
+The main process maintains the draft for native close/open protection. Saving uses a same-directory temporary file, flush, revision checks and rename. Changed disk revisions prompt a conflict decision. Watching reloads clean documents and preserves unsaved drafts. This is optimistic conflict detection, not collaborative file locking.
