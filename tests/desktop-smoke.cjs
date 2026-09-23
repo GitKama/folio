@@ -55,6 +55,7 @@ async function exportViaUi(format, filePath) {
   if (!(await page.getByRole('button', { name: `Export ${format}`, exact: true }).isVisible())) await page.locator('#export-toggle').click();
   const started = Date.now();
   await page.getByRole('button', { name: `Export ${format}`, exact: true }).click();
+  if (format === 'PDF') await page.locator('#pdf-save').click();
   try { return await waitForFile(filePath, format === 'PDF' ? 5000 : 1000, 45000, started - 1); }
   catch (error) {
     const message = await page.locator('#toast').textContent().catch(() => 'No toast available');
@@ -76,6 +77,8 @@ async function exportViaUi(format, filePath) {
     page.on('console', (message) => { if (message.type() === 'error') report.consoleErrors.push(message.text()); });
     await check('Production application opens the initial local fixture', async () => {
       await documentReady();
+      report.version = await electronApp.evaluate(({ app }) => app.getVersion());
+      assert.equal(report.version, require('../package.json').version);
       assert.match(await page.title(), /Folio/i);
       return { title: await page.title() };
     }, true);

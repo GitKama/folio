@@ -46,6 +46,13 @@ jobs:
             npm run test:editor
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
+      - name: Verify PDF profiles and pagination
+        shell: pwsh
+        run: |
+          $env:FOLIO_TEST_EXECUTABLE = (Resolve-Path release/win-unpacked/Folio.exe).Path
+          $env:FOLIO_PDF_RESULTS = Join-Path $PWD 'test-results/pdf-packaged'
+          npm run test:pdf
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Keep verification reports
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -56,5 +63,8 @@ jobs:
             test-results/packaged/*.png
             test-results/editor-packaged/*.json
             test-results/editor-packaged/*.png
+            test-results/pdf-packaged/*.json
+            test-results/pdf-packaged/*.png
+            test-results/pdf-packaged/*.pdf
           if-no-files-found: warn
           retention-days: 14

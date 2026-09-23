@@ -1,0 +1,66 @@
+/* Export-only typography. Pagination stays with Chromium, never fixed-height sheets. */
+@page { size: A4; margin: 19mm 17mm 20mm; }
+html, body { margin: 0; padding: 0; background: #fff !important; color-scheme: light; }
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.folio-document.pdf-document {
+  --doc-text: #293449; --doc-heading: #1d2a45; --doc-muted: #58667c;
+  --doc-accent: #3d58a8; --doc-line: #dce1ed; --doc-soft: #eef1fa;
+  --doc-code-bg: #eef1fa; --doc-code-text: #344d93; --doc-code-block: #f2f4f8; --doc-code-fg: #293449;
+  max-width: none; margin: 0; padding: 0;
+  font: 10.5pt/1.5 'Segoe UI', Arial, sans-serif; overflow-wrap: anywhere;
+}
+.pdf-document[data-pdf-profile='studio'] { --doc-heading: #183640; --doc-accent: #126c73; --doc-line: #d8e4e5; --doc-soft: #edf5f5; --doc-code-bg: #edf5f5; --doc-code-text: #126c73; }
+.pdf-document[data-pdf-profile='editorial'] { --doc-text: #3e3731; --doc-heading: #3a302a; --doc-accent: #91472c; --doc-line: #e5d9cf; --doc-soft: #f8f2ec; --doc-code-bg: #f8f2ec; --doc-code-text: #91472c; font-family: Georgia, 'Times New Roman', serif; line-height: 1.55; }
+.pdf-document h1, .pdf-document h2, .pdf-document h3, .pdf-document h4, .pdf-document h5, .pdf-document h6 { break-after: avoid; page-break-after: avoid; line-height: 1.25; letter-spacing: 0; }
+.pdf-document h1 { font: 700 25pt/1.15 'Segoe UI', Arial, sans-serif; letter-spacing: -.6pt; margin: 7mm 0 5mm; }
+.pdf-document > h1:first-child, .pdf-document h1.pdf-title { max-width: none; margin-top: 0; }
+.pdf-document[data-pdf-profile='editorial'] h1 { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-size: 27pt; }
+.pdf-document h2 { font: 700 12pt/1.3 'Segoe UI', Arial, sans-serif; border-bottom: 1px solid var(--doc-line); padding-bottom: 2.5mm; margin: 6mm 0 3mm; }
+.pdf-document h3 { font-size: 11pt; margin: 5mm 0 2.5mm; }
+.pdf-document h4, .pdf-document h5, .pdf-document h6 { font-size: 10.5pt; margin: 4mm 0 2mm; }
+.pdf-document p { margin: 0 0 3mm; orphans: 3; widows: 3; }
+.pdf-document h1 + p { font-size: inherit; line-height: inherit; color: var(--doc-text); margin-bottom: 4mm; }
+.pdf-document p.pdf-metadata { white-space: pre-line; font: 8.5pt/1.65 'Segoe UI', Arial, sans-serif; color: var(--doc-muted); padding: 3mm 4mm; background: var(--doc-soft); margin: 0 0 5mm; }
+.pdf-document ul, .pdf-document ol { margin: 2mm 0 4mm; padding-left: 5mm; }
+.pdf-document li { margin: 0 0 2.5mm; padding-left: 1mm; orphans: 2; widows: 2; }
+.pdf-document li > p { margin: 0 0 1mm; }
+.pdf-document hr { margin: 5mm 0; }
+.pdf-document code, .pdf-document pre { font-family: Consolas, 'Courier New', monospace; }
+.pdf-document :not(pre) > code { font-size: .9em; padding: .1em .3em; }
+.pdf-document pre { white-space: pre-wrap !important; overflow-wrap: anywhere; overflow: visible; font-size: 8.5pt; line-height: 1.5; padding: 4mm; margin: 4mm 0; break-inside: auto; }
+.pdf-document pre > code { white-space: inherit; }
+.pdf-document .code-block { overflow: visible; background: var(--doc-code-block); margin: 4mm 0; break-inside: auto; }
+.folio-document.pdf-document .code-block, .folio-document.pdf-document pre { background: var(--doc-code-block) !important; color: var(--doc-code-fg) !important; }
+.folio-document.pdf-document .code-block .hljs { background: transparent !important; color: var(--doc-code-fg) !important; }
+.pdf-document .code-language { background: var(--doc-soft); color: var(--doc-accent); padding: 2mm 4mm; break-after: avoid; }
+.pdf-document .hljs { color: #293449; background: transparent; }
+.pdf-document .table-scroll { overflow: visible; margin: 4mm 0; width: 100%; }
+.pdf-document table { width: 100%; min-width: 0; table-layout: fixed; font-size: 9pt; line-height: 1.45; margin: 4mm 0; break-inside: auto; }
+.pdf-document th, .pdf-document td { padding: 2.5mm 2mm; overflow-wrap: anywhere; vertical-align: top; }
+.pdf-document th { font-family: 'Segoe UI', Arial, sans-serif; font-size: 8pt; }
+.pdf-document thead { display: table-header-group; }
+.pdf-document tr { break-inside: avoid; }
+.pdf-document blockquote { border-left: 2px solid var(--doc-accent); padding-left: 4mm; margin: 4mm 0; break-inside: auto; }
+.pdf-document img { max-width: 100%; max-height: 235mm; object-fit: contain; break-inside: avoid; }
+.pdf-document svg { max-width: 100%; height: auto; }
+.pdf-document .diagram { overflow: visible; break-inside: avoid; }
+.pdf-document .diagram svg { max-height: 225mm; }
+.pdf-document [data-diagram-theme='dark'] { background: #202823 !important; }
+.pdf-document [data-diagram-theme='light'] { background: #f4f5f0 !important; }
+.pdf-document .katex-display { overflow: visible; white-space: normal; }
+.pdf-document details { break-inside: auto; }
+.pdf-document .header-anchor, .pdf-document .heading-anchor, .pdf-document .diagram-source { display: none !important; }
+.pdf-document .pdf-page-section { break-before: page; margin-top: 0; }
+.pdf-cards { margin: 4mm 0; }
+.pdf-card { display: block; position: relative; border: 1px solid var(--doc-line); border-left: 3px solid var(--doc-accent); padding: 3.5mm 4mm 3.5mm 13mm; margin-bottom: 3.5mm; break-inside: avoid; }
+.pdf-card-number { position: absolute; left: 3mm; top: 3.5mm; font: 700 13pt/1.2 'Segoe UI', Arial, sans-serif; color: var(--doc-accent); }
+.pdf-document .pdf-card-fields { margin: 0; }
+.pdf-document .pdf-card-fields.has-rail { display: grid; grid-template-columns: 25mm minmax(0,1fr); gap: 4mm; }
+.pdf-card-rail { border-right: 1px solid var(--doc-line); padding-right: 3mm; }
+.pdf-card-field { margin-bottom: 2mm; }
+.pdf-card-field:last-child { margin-bottom: 0; }
+.pdf-document .pdf-card-field dt { font: 700 7.3pt/1.4 'Segoe UI', Arial, sans-serif; color: var(--doc-accent); text-transform: uppercase; letter-spacing: .4pt; margin: 0 0 .6mm; }
+.pdf-document .pdf-card-field dd { margin: 0; padding: 0; border: 0; color: var(--doc-text); font-size: 10pt; line-height: 1.42; }
+.pdf-document .pdf-card-field dd > :last-child { margin-bottom: 0; }
+.pdf-document[data-pdf-profile='editorial'] .pdf-card { border: 0; border-top: 1px solid var(--doc-line); border-radius: 0; }
+@media screen { body { padding: 19mm 17mm; } }

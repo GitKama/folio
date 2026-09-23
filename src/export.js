@@ -2,6 +2,8 @@ import documentCss from './document.css?raw';
 import mathCss from 'katex/dist/katex.min.css?raw';
 import highlightLight from 'highlight.js/styles/github.css?raw';
 import highlightDark from 'highlight.js/styles/github-dark.css?raw';
+import pdfCss from './pdf.css?raw';
+import { preparePdfArticle, normalizePdfOptions } from './pdf-profiles.js';
 const fonts = import.meta.glob('../node_modules/katex/dist/fonts/*.woff2', { eager: true, query: '?url', import: 'default' });
 let embeddedMathCss;
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
@@ -64,7 +66,7 @@ async function embedImage(image, original) {
   image.removeAttribute('loading');
 }
 
-export async function buildStandaloneHtml(articleElement, { title = 'Document', theme = 'light' } = {}) {
+export async function buildStandaloneHtml(articleElement, { title = 'Document', theme = 'light', pdf = null } = {}) {
   const clone = articleElement.cloneNode(true);
   clone.className = 'folio-document';
   clone.dataset.theme = theme;
@@ -74,8 +76,13 @@ export async function buildStandaloneHtml(articleElement, { title = 'Document', 
   clone.querySelectorAll('details').forEach(details => { details.open = true; });
   const originals = [...articleElement.querySelectorAll('img')];
   await Promise.all([...clone.querySelectorAll('img')].map((image, index) => embedImage(image, originals[index])));
-  const css = documentCss + (theme === 'dark' ? highlightDark : highlightLight) + (clone.querySelector('.katex') ? await embedMathCss() : '');
+  const css = documentCss + (!pdf && theme === 'dark' ? highlightDark : highlightLight) + (clone.querySelector('.katex') ? await embedMathCss() : '');
   const safeCss = css.replace(/<\/style/gi, '<\\/style');
+  if (pdf) {
+    const options = normalizePdfOptions(pdf);
+    preparePdfArticle(clone, options);
+    return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:; base-uri 'none'; form-action 'none'"><title>${escapeHtml(title)}</title><style>${safeCss}\n${pdfCss}</style></head><body>${clone.outerHTML}</body></html>`;
+  }
   const dark = theme === 'dark';
   return `<!doctype html>
 <html lang="en" data-theme="${dark ? 'dark' : 'light'}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:; base-uri 'none'; form-action 'none'"><title>${escapeHtml(title)}</title><style>

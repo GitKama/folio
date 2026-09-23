@@ -4,6 +4,7 @@ import 'katex/dist/katex.min.css';
 import { renderMarkdown, profiles } from './engine.js';
 import { hydrateDiagrams } from './diagrams.js';
 import { buildStandaloneHtml } from './export.js';
+import { pdfProfiles, normalizePdfOptions } from './pdf-profiles.js';
 import { demoDocument } from './demo.js';
 
 const icons = {
@@ -34,7 +35,7 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '
 const uiElements = new Map();
 const byId = id => uiElements.get(id) || document.getElementById(id);
 const profileLabel = id => ({ auto: 'Automatic', commonmark: 'CommonMark', gfm: 'GitHub', extended: 'Extended', obsidian: 'Obsidian' })[id] || id;
-const defaults = { theme: 'light', view: 'read', profile: 'auto', fontSize: 17, breaks: false, sidebar: true, remoteImages: false };
+const defaults = { theme: 'light', view: 'read', profile: 'auto', fontSize: 17, breaks: false, sidebar: true, remoteImages: false, pdf: { profile: 'technical', cards: true, meetings: true } };
 let saved = {};
 try { saved = JSON.parse(localStorage.getItem('folio.settings') || '{}'); } catch { /* A fresh preference set is safe. */ }
 const state = {
@@ -44,6 +45,7 @@ const state = {
   view: ['read', 'split', 'source'].includes(saved.view) ? saved.view : defaults.view,
   profile: profiles.some(item => item.id === saved.profile) ? saved.profile : defaults.profile,
   fontSize: Math.min(24, Math.max(14, Number(saved.fontSize) || defaults.fontSize)),
+  pdf: normalizePdfOptions(saved.pdf && typeof saved.pdf === 'object' ? saved.pdf : defaults.pdf),
   doc: demoDocument,
   result: null,
   recent: [],
@@ -117,6 +119,37 @@ document.getElementById('app').innerHTML = `
 document.querySelectorAll('[id]').forEach(element => uiElements.set(element.id, element));
 const article = byId('document-content');
 const reader = byId('reader-scroll');
+
+const pdfDialog = document.createElement('dialog');
+pdfDialog.id = 'pdf-dialog';
+pdfDialog.className = 'folio-dialog pdf-dialog';
+pdfDialog.setAttribute('aria-labelledby', 'pdf-dialog-title');
+pdfDialog.innerHTML = `<form method="dialog"><div class="dialog-heading"><div><span class="popover-eyebrow">A BETTER PRINTED PAGE</span><h2 id="pdf-dialog-title">Export PDF</h2></div><button class="icon-button" value="cancel" aria-label="Close PDF options">${icon('close')}</button></div>
+  <div class="pdf-options"><fieldset class="pdf-profiles"><legend>Document style</legend>${pdfProfiles.map(p => `<label class="pdf-profile-card"><input type="radio" name="pdf-profile" value="${p.id}"><span class="pdf-swatch pdf-${p.id}" aria-hidden="true">Aa</span><span><strong>${p.label}</strong><small>${p.description}</small></span></label>`).join('')}</fieldset>
+  <label class="checkbox-setting"><span><strong>Readable cards for wide tables</strong><small>Reflow tables with four or more columns, preserving every value.</small></span><input type="checkbox" id="pdf-cards"></label>
+  <label class="checkbox-setting"><span><strong>Meeting section layout</strong><small>Use bold section labels as headings; start Action Items and Discussion Highlights on new pages.</small></span><input type="checkbox" id="pdf-meetings"></label>
+  <p class="pdf-paper-note">A4 · Page numbers · Selectable text · Your document stays on this computer</p></div>
+  <div class="dialog-actions"><button value="cancel" class="quiet-button">Cancel</button><button type="button" id="pdf-save" class="primary-button">Save PDF ${icon('arrow')}</button></div></form>`;
+document.body.append(pdfDialog);
+
+function openPdfOptions() {
+  if (state.exporting || pdfDialog.open) return;
+  closePanels();
+  pdfDialog.querySelector(`input[value="${state.pdf.profile}"]`).checked = true;
+  byId('pdf-cards').checked = state.pdf.cards;
+  byId('pdf-meetings').checked = state.pdf.meetings;
+  pdfDialog.showModal();
+}
+pdfDialog.querySelectorAll('[name="pdf-profile"]').forEach(input => input.addEventListener('change', () => {
+  byId('pdf-cards').checked = input.value !== 'studio';
+  byId('pdf-meetings').checked = input.value === 'technical';
+}));
+byId('pdf-save').addEventListener('click', () => {
+  state.pdf = normalizePdfOptions({ profile: pdfDialog.querySelector('[name="pdf-profile"]:checked').value, cards: byId('pdf-cards').checked, meetings: byId('pdf-meetings').checked });
+  persist();
+  pdfDialog.close();
+  exportDocument('pdf');
+});
 
 function persist() {
   try { localStorage.setItem('folio.settings', JSON.stringify(Object.fromEntries(Object.keys(defaults).map(key => [key, state[key]])))); } catch { /* Reading still works when storage is unavailable. */ }
@@ -448,9 +481,9 @@ async function exportDocument(format) {
     const exportArticle = article.cloneNode(true);
     exportArticle.querySelectorAll('.code-copy').forEach(button => button.remove());
     exportArticle.querySelectorAll('mark.folio-search-match').forEach(mark => mark.replaceWith(document.createTextNode(mark.textContent)));
-    const html = await buildStandaloneHtml(exportArticle, { title, theme: state.theme, baseUrl: state.doc.baseUrl });
+    const html = await buildStandaloneHtml(exportArticle, { title, theme: state.theme, pdf: format === 'pdf' ? state.pdf : null });
     if (bridge?.exportFile) {
-      const result = await bridge.exportFile({ format, html, title });
+      const result = await bridge.exportFile({ format, html, title, pdfProfile: state.pdf.profile });
       if (!result?.canceled) notify(`${format.toUpperCase()} saved${result?.path ? ` to ${result.path}` : '.'}`);
     } else if (format === 'html') {
       const href = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
@@ -520,7 +553,7 @@ byId('remote-images').addEventListener('change', async event => {
 byId('compatibility-toggle').addEventListener('click', () => { const panel = byId('details-panel'); panel.hidden = !panel.hidden; byId('compatibility-toggle').setAttribute('aria-expanded', String(!panel.hidden)); });
 byId('details-close').addEventListener('click', () => { byId('details-panel').hidden = true; byId('compatibility-toggle').setAttribute('aria-expanded', 'false'); byId('compatibility-toggle').focus(); });
 byId('export-html').addEventListener('click', () => exportDocument('html'));
-byId('export-pdf').addEventListener('click', () => exportDocument('pdf'));
+byId('export-pdf').addEventListener('click', openPdfOptions);
 const copyText = text => bridge?.copyText ? bridge.copyText(text) : navigator.clipboard.writeText(text);
 byId('copy-source').addEventListener('click', async () => { try { await copyText(state.doc.content); notify('Markdown copied to clipboard.'); } catch { byId('source-content').select(); notify('Select and copy the source with Ctrl+C.'); } });
 byId('search-toggle').addEventListener('click', () => toggleSearch());
@@ -636,7 +669,7 @@ bridge?.onCommand?.(command => {
   else if (action === 'save-as') saveMarkdown(true);
   else if (action === 'find' || action === 'search') toggleSearch(true);
   else if (action === 'export-html') exportDocument('html');
-  else if (action === 'export-pdf') exportDocument('pdf');
+  else if (action === 'export-pdf') openPdfOptions();
   else if (action === 'paste') openPaste();
   else if (action === 'help') byId('help-dialog').showModal();
   else if (['read', 'split', 'source'].includes(action)) setView(action);

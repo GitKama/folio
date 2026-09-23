@@ -52,7 +52,7 @@ async function disk(name, content) { assert.equal(await fs.readFile(name, 'utf8'
   try {
     app = await electron.launch({ executablePath, args: process.env.FOLIO_TEST_EXECUTABLE ? [] : [root], env, cwd: root, timeout: 45000 });
     report.version = await app.evaluate(({ app }) => app.getVersion());
-    assert.equal(report.version, '1.1.0');
+    assert.equal(report.version, require('../package.json').version);
     page = await app.firstWindow();
     page.setDefaultTimeout(12000);
     page.on('pageerror', error => report.pageErrors.push(error.message));

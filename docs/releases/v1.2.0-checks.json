@@ -1,0 +1,254 @@
+{
+  "version": "1.2.0",
+  "unitTests": {
+    "passed": 42,
+    "total": 42
+  },
+  "suites": {
+    "viewer": {
+      "passed": true,
+      "checks": [
+        {
+          "name": "Production application opens the initial local fixture",
+          "passed": true
+        },
+        {
+          "name": "Chromium and preload security boundaries are enabled",
+          "passed": true
+        },
+        {
+          "name": "Renderer bridge refuses unauthorized links and asset capabilities",
+          "passed": true
+        },
+        {
+          "name": "Core Markdown, GFM tables, tasks and notes render",
+          "passed": true
+        },
+        {
+          "name": "Source views preserve the original and dialect profiles change interpretation",
+          "passed": true
+        },
+        {
+          "name": "Source and code Copy buttons use the native bridge without broad clipboard permission",
+          "passed": true
+        },
+        {
+          "name": "Mathematics and both diagram engines render locally",
+          "passed": true
+        },
+        {
+          "name": "Callouts and local SVG, PNG and wiki-image embeds render",
+          "passed": true
+        },
+        {
+          "name": "Hostile HTML remains inert and executable attributes are stripped",
+          "passed": true
+        },
+        {
+          "name": "Outline targets exist and duplicate headings have unique IDs",
+          "passed": true
+        },
+        {
+          "name": "Find highlights matches and a theme change preserves readable content",
+          "passed": true
+        },
+        {
+          "name": "Standalone HTML exports through the actual UI",
+          "passed": true
+        },
+        {
+          "name": "Exported HTML reopens independently with images and diagrams",
+          "passed": true
+        },
+        {
+          "name": "PDF exports through the actual UI and contains valid pages",
+          "passed": true
+        },
+        {
+          "name": "Wiki links open their local Markdown target",
+          "passed": true
+        },
+        {
+          "name": "Native Open command loads another local document",
+          "passed": true
+        },
+        {
+          "name": "Changes to an opened local file reload automatically",
+          "passed": true
+        },
+        {
+          "name": "A native file input crosses the dropped-file preload bridge",
+          "passed": true
+        },
+        {
+          "name": "Unsupported runtime content stays inert and invalid diagrams do not stop reading",
+          "passed": true
+        },
+        {
+          "name": "Desktop and narrow layouts remain usable without page overflow",
+          "passed": true
+        },
+        {
+          "name": "Welcome and dark reading screenshots are captured",
+          "passed": true
+        },
+        {
+          "name": "No uncaught renderer exceptions occurred",
+          "passed": true
+        }
+      ]
+    },
+    "editor": {
+      "passed": true,
+      "checks": [
+        {
+          "name": "Source and split edit the same text; preview, caret, undo and redo survive rendering",
+          "passed": true
+        },
+        {
+          "name": "Ctrl+S writes real Markdown, preserves CRLF and resets dirty state",
+          "passed": true
+        },
+        {
+          "name": "Cancel Open, discard prompt and Save As preserve the active draft",
+          "passed": true
+        },
+        {
+          "name": "Failed save keeps edits and prevents a Save-and-open transition",
+          "passed": true
+        },
+        {
+          "name": "Save As creates a UTF-8 document and later Save updates only that copy",
+          "passed": true
+        },
+        {
+          "name": "External changes during an Open dialog reload after Cancel",
+          "passed": true
+        },
+        {
+          "name": "External changes reload clean documents but cannot replace unsaved edits",
+          "passed": true
+        },
+        {
+          "name": "Conflict Save a copy preserves the external version",
+          "passed": true
+        },
+        {
+          "name": "Save then Open persists edits; Discard opens without writing them",
+          "passed": true
+        },
+        {
+          "name": "New, Welcome, recent files, dropped files and local links honor Cancel",
+          "passed": true
+        },
+        {
+          "name": "Pasted Markdown is unsaved and can be saved to a real file",
+          "passed": true
+        },
+        {
+          "name": "Immediate HTML export includes the latest unsaved edit",
+          "passed": true
+        },
+        {
+          "name": "Editor layouts work at desktop and minimum window width",
+          "passed": true
+        },
+        {
+          "name": "Close Cancel retains the window and draft",
+          "passed": true
+        },
+        {
+          "name": "Close Save persists the draft before the application exits",
+          "passed": true
+        }
+      ]
+    },
+    "pdf": {
+      "passed": true,
+      "checks": [
+        {
+          "name": "Technical defaults, keyboard cancellation and dialog layout",
+          "passed": true
+        },
+        {
+          "name": "technical exports through the dialog without changing Markdown",
+          "passed": true
+        },
+        {
+          "name": "studio exports through the dialog without changing Markdown",
+          "passed": true
+        },
+        {
+          "name": "editorial exports through the dialog without changing Markdown",
+          "passed": true
+        },
+        {
+          "name": "Export choices persist after reloading the app",
+          "passed": true
+        },
+        {
+          "name": "Latest unsaved edit exports in light typography from dark reading mode",
+          "passed": true
+        },
+        {
+          "name": "Canceling native save preserves the draft",
+          "passed": true
+        },
+        {
+          "name": "Long grids, long code and oversized cards remain printable",
+          "passed": true
+        },
+        {
+          "name": "Large export HTML bypasses data URL limits and blocks scripts",
+          "passed": true
+        }
+      ]
+    }
+  },
+  "portable": {
+    "passed": true,
+    "version": "1.2.0",
+    "editingAndSaving": true,
+    "bridge": "object",
+    "node": "undefined",
+    "math": 1,
+    "diagrams": 1
+  },
+  "pdfExtraction": {
+    "technical": {
+      "pages": 3,
+      "a4": true,
+      "textChecksPassed": true
+    },
+    "studio": {
+      "pages": 2,
+      "a4": true,
+      "textChecksPassed": true
+    },
+    "editorial": {
+      "pages": 2,
+      "a4": true,
+      "textChecksPassed": true
+    },
+    "stress-grid": {
+      "pages": 8,
+      "a4": true,
+      "textChecksPassed": true
+    },
+    "stress-card": {
+      "pages": 4,
+      "a4": true,
+      "textChecksPassed": true
+    },
+    "large": {
+      "pages": 1,
+      "a4": true,
+      "textChecksPassed": true
+    }
+  },
+  "packagedSource": {
+    "passed": true,
+    "version": "1.2.0",
+    "matchedFiles": 116
+  }
+}

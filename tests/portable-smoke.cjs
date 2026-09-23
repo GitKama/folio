@@ -5,7 +5,7 @@ const { spawn } = require('node:child_process');
 const { chromium } = require('playwright');
 const root = path.resolve(__dirname, '..');
 const results = path.join(root, 'test-results', 'portable');
-const executable = path.join(root, 'release', 'Folio-1.1.0-win-x64.exe');
+const executable = path.join(root, 'release', `Folio-${require('../package.json').version}-win-x64.exe`);
 let child, browser;
 
 (async () => {
@@ -40,7 +40,7 @@ let child, browser;
   if ((await fs.readFile(document, 'utf8')) !== edited) throw new Error('The portable editor did not save its changes.');
   await page.locator('#document-content .mermaid svg').waitFor({ timeout: 30000 });
   const verified = await page.evaluate(() => ({ title: document.title, bridge: typeof window.folio, node: typeof require, math: document.querySelectorAll('.katex').length, diagrams: document.querySelectorAll('.mermaid svg').length }));
-  await fs.writeFile(path.join(results, 'portable-report.json'), JSON.stringify({ passed: true, executable, verifiedAt: new Date().toISOString(), elapsedMs: Date.now() - start, editingAndSaving: true, ...verified }, null, 2));
+  await fs.writeFile(path.join(results, 'portable-report.json'), JSON.stringify({ passed: true, version: require('../package.json').version, executable, verifiedAt: new Date().toISOString(), elapsedMs: Date.now() - start, editingAndSaving: true, ...verified }, null, 2));
   console.log(JSON.stringify({ passed: true, ...verified }));
   const session = await browser.newBrowserCDPSession();
   await session.send('Browser.close').catch(() => {});

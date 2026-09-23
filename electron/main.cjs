@@ -4,9 +4,10 @@ const fsSync = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { pathToFileURL } = require('node:url');
+const { pdfPrintOptions } = require('./pdf.cjs');
 const { readDocument, writeDocument, getRevision, normalizeNewlines, resolveAsset, isWithin, markdownExtensions, MAX_DOCUMENT_BYTES } = require('./files.cjs');
 
-protocol.registerSchemesAsPrivileged([{ scheme: 'folio', privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true } }]);
+protocol.registerSchemesAsPrivileged([{ scheme: 'folio', privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true } }, { scheme: 'folio-print', privileges: { standard: true, secure: true } }]);
 const testMode = process.env.FOLIO_TEST_MODE === '1';
 if (testMode && process.env.FOLIO_TEST_USER_DATA) app.setPath('userData', path.resolve(process.env.FOLIO_TEST_USER_DATA));
 app.setName('Folio');
@@ -17,6 +18,7 @@ const loadedRemoteImages = new Set();
 let recent = [];
 let settingsFile;
 let draft = '', actionBusy = false, allowClose = false;
+let lastTestExport;
 const isDirty = () => Boolean(currentDocument?.unsaved) || normalizeNewlines(draft) !== normalizeNewlines(currentDocument?.content || '');
 
 function send(channel, value) { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, value); }
@@ -163,9 +165,10 @@ async function openLink({ href, fromPath } = {}) {
   return openDocument(real);
 }
 function safeTitle(value) { return (String(value || 'document').replace(/[<>:"/\\|?*\x00-\x1f]/g, '-').replace(/\.(md|markdown|mdown|qmd|rmd)$/i, '').slice(0, 120) || 'document'); }
-async function writeExport(format, html, destination) {
+async function writeExport(format, html, destination, options = {}) {
   if (!['html', 'pdf'].includes(format) || typeof html !== 'string' || html.length > 90 * 1024 * 1024 || !/<html[\s>]/i.test(html) || !/<head[\s>]/i.test(html)) throw new Error('Invalid or oversized export.');
   if (path.extname(destination).toLowerCase() !== `.${format}`) throw new Error(`Choose a .${format} filename.`);
+  if (testMode) lastTestExport = { format, html, options };
   // A first, restrictive CSP also protects the isolated print renderer.
   const locked = html.replace(/<head[^>]*>/i, `<head><meta http-equiv="Content-Security-Policy" content="${exportCsp}">`);
   if (format === 'html') { await fs.writeFile(destination, locked, 'utf8'); return { path: destination }; }
@@ -174,12 +177,19 @@ async function writeExport(format, html, destination) {
   printWindow.webContents.session.setPermissionRequestHandler((_wc, _permission, callback) => callback(false));
   printWindow.webContents.session.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*', 'file://*/*', 'folio://*/*'] }, (_details, callback) => callback({ cancel: true }));
   try {
-    await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(locked)}`);
+    // Serve only this in-memory document in the isolated session. Unlike data:
+    // navigation, this supports large embedded assets without a URL-size limit.
+    printWindow.webContents.session.protocol.handle('folio-print', request => request.url === 'folio-print://document/'
+      ? new Response(locked, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': exportCsp } })
+      : new Response('Not found', { status: 404 }));
+    await printWindow.loadURL('folio-print://document/');
     await printWindow.webContents.executeJavaScript('Promise.all([document.fonts.ready, ...Array.from(document.images, image => image.complete ? Promise.resolve() : new Promise(resolve => {image.onload=resolve; image.onerror=resolve;}))])');
-    const pdf = await printWindow.webContents.printToPDF({ printBackground: true, preferCSSPageSize: true, pageSize: 'A4', margins: { top: 0.5, bottom: 0.5, left: 0.5, right: 0.5 }, generateDocumentOutline: true });
+    // Oversized cards/rows must be allowed to continue onto another page.
+    await printWindow.webContents.executeJavaScript(`(() => { const limit = 250 * 96 / 25.4; document.querySelectorAll('.pdf-card, tr, .diagram').forEach(el => { if (el.getBoundingClientRect().height > limit) el.style.breakInside = 'auto'; }); })()`);
+    const pdf = await printWindow.webContents.printToPDF(pdfPrintOptions(options.title, options.pdfProfile));
     await fs.writeFile(destination, pdf);
     return { path: destination };
-  } finally { printWindow.destroy(); }
+  } finally { printWindow.webContents.session.protocol.unhandle('folio-print'); printWindow.destroy(); }
 }
 
 async function installProtocol() {
@@ -279,11 +289,11 @@ else {
       }
       const asset = await assetFromUrl(url); return `data:${asset.mime};base64,${asset.bytes.toString('base64')}`;
     });
-    handle('folio:export', async ({ format, html, title } = {}) => {
+    handle('folio:export', async ({ format, html, title, pdfProfile } = {}) => {
       if (!['html', 'pdf'].includes(format)) throw new Error('Choose HTML or PDF.');
       const result = await dialog.showSaveDialog(mainWindow, { title: `Export ${format.toUpperCase()}`, defaultPath: `${safeTitle(title)}.${format}`, filters: [{ name: format.toUpperCase(), extensions: [format] }], properties: ['showOverwriteConfirmation', 'createDirectory'] });
       if (result.canceled || !result.filePath) return { canceled: true };
-      return writeExport(format, html, result.filePath);
+      return writeExport(format, html, result.filePath, { title, pdfProfile });
     });
     const launchFile = (testMode && process.env.FOLIO_TEST_FILE) || process.argv.slice(app.isPackaged ? 1 : 2).find(arg => !arg.startsWith('-') && markdownExtensions.has(path.extname(arg).toLowerCase()));
     if (launchFile) {
@@ -297,7 +307,7 @@ else {
       { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }, { label: 'Find in document', accelerator: 'CmdOrCtrl+F', click: () => command('find') }] },
       { label: 'View', submenu: [{ label: 'Reading view', click: () => command('read') }, { label: 'Split view', click: () => command('split') }, { label: 'Source view', click: () => command('source') }, { type: 'separator' }, { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }, { role: 'togglefullscreen' }] }
     ]));
-    if (testMode) globalThis.__FOLIO_TEST__ = { exportHtml: (p, html) => writeExport('html', html, p), exportPdf: (p, html) => writeExport('pdf', html, p), getSecurity: () => mainWindow.webContents.getLastWebPreferences(), openFile: p => documentAction(() => openDocument(p, true)), getEditorState: () => ({ dirty: isDirty(), busy: actionBusy, path: currentDocument?.path }) };
+    if (testMode) globalThis.__FOLIO_TEST__ = { exportHtml: (p, html) => writeExport('html', html, p), exportPdf: (p, html, options) => writeExport('pdf', html, p, options), getLastExport: () => lastTestExport, getSecurity: () => mainWindow.webContents.getLastWebPreferences(), openFile: p => documentAction(() => openDocument(p, true)), getEditorState: () => ({ dirty: isDirty(), busy: actionBusy, path: currentDocument?.path }) };
   }).catch(error => { console.error(error); app.exit(1); });
   app.on('window-all-closed', () => app.quit());
 }

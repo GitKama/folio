@@ -26,6 +26,8 @@ Edits are not autosaved. Normal close prompts do not protect against crashes, fo
 
 Choose Export → Standalone HTML or PDF. Ctrl+P starts PDF export. HTML bundles styles, math fonts, images and rendered diagrams. Missing images stop export with an explanation. Relative document links remain links; exporting does not bundle a whole vault or website.
 
+PDF opens a style dialog. Technical is the initial choice; Studio suits everyday reports and Editorial suits longer prose. Adjust wide-table cards and meeting section layout, then choose Save PDF. Folio remembers your choices. Export includes unsaved edits without saving or rewriting the Markdown. See the [PDF guide](pdf-export.md).
+
 ## Local files and images
 
 Images and local Markdown links are resolved relative to the current file, within that folder and its descendants. Use Open for a file outside the folder. Network share paths are not supported. HTTPS images are off by default; enable them in Reading settings if needed.

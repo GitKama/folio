@@ -1,6 +1,6 @@
 {
   "name": "folio-markdown-viewer",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Folio — an offline Markdown reader and editor with rich diagrams, dialect profiles and portable exports.",
   "author": "Alex",
   "private": true,
@@ -14,7 +14,8 @@
     "test:desktop": "node tests/desktop-smoke.cjs",
     "package": "npm run build && electron-builder --win portable nsis --x64",
     "release:assemble": "python scripts/assemble-release.py",
-    "test:editor": "node tests/editor-smoke.cjs"
+    "test:editor": "node tests/editor-smoke.cjs",
+    "test:pdf": "node tests/pdf-smoke.cjs"
   },
   "build": {
     "appId": "personal.folio.markdown",
