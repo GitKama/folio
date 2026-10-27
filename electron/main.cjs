@@ -1,4 +1,4 @@
-const { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, protocol, session, shell } = require('electron');
+const { app, BrowserWindow, clipboard, ClipboardItem, dialog, ipcMain, Menu, protocol, session, shell } = require('electron');
 const fs = require('node:fs/promises');
 const fsSync = require('node:fs');
 const path = require('node:path');
@@ -271,9 +271,17 @@ else {
     handle('folio:drop', filePath => documentAction(() => openDocument(filePath)));
     handle('folio:link', link => documentAction(() => openLink(link)));
     handle('folio:remote-images', value => { remoteImages = value === true; return remoteImages; });
-    handle('folio:copy', value => {
+    handle('folio:copy', async value => {
       if (typeof value !== 'string' || value.length > 12 * 1024 * 1024) throw new Error('This text is too large to copy.');
-      clipboard.writeText(value);
+      await clipboard.writeText(value);
+      return true;
+    });
+    handle('folio:copy-teams', async value => {
+      if (!value || typeof value.html !== 'string' || typeof value.text !== 'string' || !value.text.trim() ||
+          Math.max(Buffer.byteLength(value.html, 'utf8'), Buffer.byteLength(value.html, 'utf16le'), Buffer.byteLength(value.text, 'utf8'), Buffer.byteLength(value.text, 'utf16le')) > 80 * 1024) {
+        throw new Error('Invalid or oversized Teams clipboard content. Copy a shorter section or export HTML/PDF.');
+      }
+      await clipboard.write([new ClipboardItem({ 'text/html': value.html, 'text/plain': value.text })]);
       return true;
     });
     handle('folio:embed', async url => {
@@ -303,7 +311,7 @@ else {
     await createWindow();
     const command = value => mainWindow?.webContents.send('folio:command', value);
     Menu.setApplicationMenu(Menu.buildFromTemplate([
-      { label: 'File', submenu: [{ label: 'New Markdown', accelerator: 'CmdOrCtrl+N', click: () => command('new') }, { label: 'Open Markdown…', accelerator: 'CmdOrCtrl+O', click: () => command('open') }, { label: 'Save', accelerator: 'CmdOrCtrl+S', click: () => command('save') }, { label: 'Save As…', accelerator: 'CmdOrCtrl+Shift+S', click: () => command('save-as') }, { type: 'separator' }, { label: 'Export HTML…', click: () => command('export-html') }, { label: 'Export PDF…', accelerator: 'CmdOrCtrl+P', click: () => command('export-pdf') }, { type: 'separator' }, { role: 'quit' }] },
+      { label: 'File', submenu: [{ label: 'New Markdown', accelerator: 'CmdOrCtrl+N', click: () => command('new') }, { label: 'Open Markdown…', accelerator: 'CmdOrCtrl+O', click: () => command('open') }, { label: 'Save', accelerator: 'CmdOrCtrl+S', click: () => command('save') }, { label: 'Save As…', accelerator: 'CmdOrCtrl+Shift+S', click: () => command('save-as') }, { type: 'separator' }, { label: 'Copy for Teams', click: () => command('export-teams') }, { label: 'Export HTML…', click: () => command('export-html') }, { label: 'Export PDF…', accelerator: 'CmdOrCtrl+P', click: () => command('export-pdf') }, { type: 'separator' }, { role: 'quit' }] },
       { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }, { label: 'Find in document', accelerator: 'CmdOrCtrl+F', click: () => command('find') }] },
       { label: 'View', submenu: [{ label: 'Reading view', click: () => command('read') }, { label: 'Split view', click: () => command('split') }, { label: 'Source view', click: () => command('source') }, { type: 'separator' }, { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }, { role: 'togglefullscreen' }] }
     ]));

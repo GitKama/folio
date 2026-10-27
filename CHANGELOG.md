@@ -2,6 +2,19 @@
 
 The original reader was developed on 16 September 2026. The public repository was prepared on 21 September 2026. Commit/tag dates reflect public release preparation, not invented historical Git activity.
 
+## [1.3.0] — 2026-10-27
+
+Copy the current Markdown draft into the Microsoft Teams message composer.
+
+- Export → Copy for Teams and the matching native File menu command.
+- HTML and plain-text clipboard representations through Electron's asynchronous ClipboardItem API; success is reported only after the write completes.
+- Conservative rich formatting with labeled table rows, task markers, code/math/diagram source, expanded callouts, and image/link fallbacks.
+- Current unsaved edits and selected dialect settings are included without saving, fetching assets or sending messages.
+- Conversion notes in Document details and an 80 KB output budget with explicit errors rather than truncation.
+- Unit, packaged IPC/UI, error-recovery and real Windows Teams draft-paste checks.
+- Existing source/code clipboard writes now await completion and propagate failures.
+- Documented a planned future Rust migration in ROADMAP.md; this release remains Electron.
+
 ## [1.2.0] — 2026-09-23
 
 Designed PDF exports for meetings, reports and longer reading.

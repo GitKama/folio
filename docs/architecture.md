@@ -22,6 +22,7 @@ flowchart LR
 | Markdown dialects and sanitization | src/engine.js |
 | Diagrams | src/diagrams.js, src/graphviz.worker.js |
 | Standalone export | src/export.js |
+| Teams clipboard conversion | src/teams-export.js |
 
 The renderer enables context isolation and sandboxing and disables Node integration. IPC checks the sender and main frame. HTML/SVG is sanitized; navigation and webviews are blocked. Asset capabilities restrict local images, with realpath checks for junctions. Remote images are opt-in.
 
@@ -38,3 +39,11 @@ The main process maintains the draft for native close/open protection. Saving us
 `src/pdf-profiles.js` transforms an export clone; `src/pdf.css` provides print typography. The reader and Markdown text remain unchanged. Complex spanning/nested tables keep their grid. The selector persists local preferences independently of Markdown dialect settings.
 
 `electron/pdf.cjs` supplies escaped running headers, page numbers and Chromium print options. A one-document `folio-print` protocol lives in a fresh in-memory session, avoiding data URL size limits. The print renderer remains sandboxed, with scripts, network access and local file access blocked. The protocol handler and window are removed after export.
+
+## Teams clipboard in 1.3
+
+The converter parses the current source using the selected dialect, then reconstructs a narrow semantic HTML subset and readable text. It does not use the hydrated preview or fetch assets. The native bridge validates payload types and sizes, fixes the allowed MIME types to text/html and text/plain, and awaits an atomic Electron ClipboardItem write. Document details retains notes for the last successful copy. There is no Teams API integration or message sending.
+
+## Future implementation
+
+A future Rust migration is planned separately; the current implementation remains Electron. See [the roadmap](../ROADMAP.md) for the preservation and validation requirements.

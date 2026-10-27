@@ -12,6 +12,7 @@ The npm package is marked private only to prevent accidental npm publication; Fo
 | npm test | Renderer and filesystem regressions |
 | npm run test:desktop | Actual Electron viewer checks |
 | npm run test:editor | Electron editing, saving and conflict checks (1.1+) |
+| npm run test:teams | Teams clipboard IPC, conversion notes, latest edits and error handling |
 | npm run test:pdf | PDF dialog, profiles, preferences and pagination stress checks |
 | npm run package | Windows portable EXE and NSIS installer |
 | npm run release:assemble | Gather verified artifacts and source archive |
@@ -30,6 +31,8 @@ $env:FOLIO_EDITOR_RESULTS = Join-Path (Get-Location) 'test-results/editor-packag
 npm run test:editor
 $env:FOLIO_PDF_RESULTS = Join-Path (Get-Location) 'test-results/pdf-packaged'
 npm run test:pdf
+$env:FOLIO_TEAMS_RESULTS = Join-Path (Get-Location) 'test-results/teams-packaged'
+npm run test:teams
 node tests/portable-smoke.cjs
 npm run release:assemble
 ```

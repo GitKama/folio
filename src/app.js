@@ -4,6 +4,7 @@ import 'katex/dist/katex.min.css';
 import { renderMarkdown, profiles } from './engine.js';
 import { hydrateDiagrams } from './diagrams.js';
 import { buildStandaloneHtml } from './export.js';
+import { buildTeamsClipboard } from './teams-export.js';
 import { pdfProfiles, normalizePdfOptions } from './pdf-profiles.js';
 import { demoDocument } from './demo.js';
 
@@ -95,7 +96,7 @@ document.getElementById('app').innerHTML = `
           <button class="icon-button" id="theme-toggle" title="Switch to dark theme" aria-label="Switch to dark theme">${icon('moon')}</button>
           <button class="icon-button" id="settings-toggle" title="Reading settings" aria-label="Reading settings" aria-expanded="false">${icon('settings')}</button>
           <div class="popover-anchor"><button class="export-button" id="export-toggle" title="Export document" aria-expanded="false">${icon('export')}<span>Export</span>${icon('chevron')}</button>
-            <div class="menu popover" id="export-menu" hidden><span class="popover-eyebrow">TAKE IT WITH YOU</span><button id="export-html" title="Export HTML" aria-label="Export HTML">${icon('file')}<span><strong>Standalone HTML</strong><small>A self-contained reading copy</small></span></button><button id="export-pdf" title="Export PDF" aria-label="Export PDF">${icon('file')}<span><strong>PDF document</strong><small>Ready to print or share</small></span></button></div>
+            <div class="menu popover" id="export-menu" hidden><span class="popover-eyebrow">TAKE IT WITH YOU</span><button id="export-html" title="Export HTML" aria-label="Export HTML">${icon('file')}<span><strong>Standalone HTML</strong><small>A self-contained reading copy</small></span></button><button id="export-teams" title="Copy formatted text for Microsoft Teams" aria-label="Copy for Teams">${icon('copy')}<span><strong>Copy for Teams</strong><small>Formatted text, ready to paste</small></span></button><button id="export-pdf" title="Export PDF" aria-label="Export PDF">${icon('file')}<span><strong>PDF document</strong><small>Ready to print or share</small></span></button></div>
           </div>
         </div>
       </header>
@@ -113,7 +114,7 @@ document.getElementById('app').innerHTML = `
     <div class="toast" id="toast" role="status" hidden></div>
     <input type="file" id="file-input" accept=".md,.markdown,.mdown,.mkd,.mkdn,.mdx,.qmd,.rmd,.txt" hidden/>
     <dialog id="paste-dialog" class="folio-dialog"><form method="dialog"><div class="dialog-heading"><div><span class="popover-eyebrow">A SPACE FOR A FRAGMENT</span><h2>Paste your Markdown</h2></div><button class="icon-button" value="cancel" aria-label="Close paste dialog">${icon('close')}</button></div><label class="sr-only" for="paste-content">Markdown to preview</label><textarea id="paste-content" placeholder="# Something worth reading\n\nPaste your Markdown here…" spellcheck="false"></textarea><div class="dialog-actions"><span>Preview a document in Folio</span><button value="cancel" class="quiet-button">Cancel</button><button id="paste-submit" type="button" class="primary-button">Open preview ${icon('arrow')}</button></div></form></dialog>
-    <dialog id="help-dialog" class="folio-dialog help-dialog"><form method="dialog"><div class="dialog-heading"><div><span class="popover-eyebrow">A LITTLE GUIDANCE</span><h2>At home in Folio</h2></div><button class="icon-button" aria-label="Close help">${icon('close')}</button></div><div class="help-body"><p>A standalone reader and editor for CommonMark, GitHub Markdown, Obsidian notes, and extended Markdown.</p><div class="shortcut-row"><span>Open a document</span><kbd>Ctrl O</kbd></div><div class="shortcut-row"><span>Save Markdown</span><kbd>Ctrl S</kbd></div><div class="shortcut-row"><span>Save As</span><kbd>Ctrl Shift S</kbd></div><div class="shortcut-row"><span>New document</span><kbd>Ctrl N</kbd></div><div class="shortcut-row"><span>Undo / redo edits</span><span><kbd>Ctrl Z</kbd> / <kbd>Ctrl Y</kbd></span></div><div class="shortcut-row"><span>Find in the document</span><kbd>Ctrl F</kbd></div><div class="shortcut-row"><span>Next / previous search match</span><span><kbd>Enter</kbd> / <kbd>Shift Enter</kbd></span></div><div class="shortcut-row"><span>Close a panel or search</span><kbd>Esc</kbd></div><h3>When a document looks different</h3><p>Try its matching format in the toolbar. Dialects can interpret the same syntax differently; document details show supported features and compatibility notes.</p><p>Executable content such as MDX components and notebook code needs its original runtime. Folio displays the readable content and surfaces detected limitations.</p><p class="help-version">FOLIO <span>·</span> Markdown, clearly.</p></div><div class="dialog-actions"><button class="primary-button">Back to reading ${icon('arrow')}</button></div></form></dialog>
+    <dialog id="help-dialog" class="folio-dialog help-dialog"><form method="dialog"><div class="dialog-heading"><div><span class="popover-eyebrow">A LITTLE GUIDANCE</span><h2>At home in Folio</h2></div><button class="icon-button" aria-label="Close help">${icon('close')}</button></div><div class="help-body"><p>A standalone reader and editor for CommonMark, GitHub Markdown, Obsidian notes, and extended Markdown.</p><div class="shortcut-row"><span>Open a document</span><kbd>Ctrl O</kbd></div><div class="shortcut-row"><span>Save Markdown</span><kbd>Ctrl S</kbd></div><div class="shortcut-row"><span>Save As</span><kbd>Ctrl Shift S</kbd></div><div class="shortcut-row"><span>New document</span><kbd>Ctrl N</kbd></div><div class="shortcut-row"><span>Undo / redo edits</span><span><kbd>Ctrl Z</kbd> / <kbd>Ctrl Y</kbd></span></div><div class="shortcut-row"><span>Find in the document</span><kbd>Ctrl F</kbd></div><div class="shortcut-row"><span>Next / previous search match</span><span><kbd>Enter</kbd> / <kbd>Shift Enter</kbd></span></div><div class="shortcut-row"><span>Close a panel or search</span><kbd>Esc</kbd></div><h3>Paste into Microsoft Teams</h3><p>Use Export → Copy for Teams, then Ctrl+V in the Teams desktop or web composer. Tables become labeled rows; math and diagrams keep their source. Document details lists conversion notes. Review the pasted draft before sending.</p><h3>When a document looks different</h3><p>Try its matching format in the toolbar. Dialects can interpret the same syntax differently; document details show supported features and compatibility notes.</p><p>Executable content such as MDX components and notebook code needs its original runtime. Folio displays the readable content and surfaces detected limitations.</p><p class="help-version">FOLIO <span>·</span> Markdown, clearly.</p></div><div class="dialog-actions"><button class="primary-button">Back to reading ${icon('arrow')}</button></div></form></dialog>
   </div>`;
 
 document.querySelectorAll('[id]').forEach(element => uiElements.set(element.id, element));
@@ -257,13 +258,16 @@ function updateDetails() {
   if (!result) return;
   const selected = profiles.find(profile => profile.id === state.profile);
   const metadata = Object.entries(result.metadata || {});
+  const teamsNotes = state.teamsNotes;
+
   byId('details-content').innerHTML = `
+    ${teamsNotes ? `<div class="detail-group"><h3>Last Teams copy</h3><p>Paste with Ctrl+V in the Teams desktop or web composer. Check the draft before sending. Plain-text paste removes formatting.</p>${teamsNotes.map(message => `<p>${escapeHtml(message)}</p>`).join('')}<p>Teams may simplify formatting. The Markdown document is unchanged.</p></div>` : ''}
     <div class="detail-group"><span class="detail-label">INTERPRETATION</span><h3>${escapeHtml(selected?.label || state.profile)}</h3><p>${escapeHtml(selected?.description || 'A broad selection of Markdown extensions.')}</p></div>
     <div class="detail-group"><span class="detail-label">DOCUMENT</span><dl class="document-facts"><dt>Name</dt><dd>${escapeHtml(state.doc.name)}</dd><dt>Encoding</dt><dd>${escapeHtml(state.doc.encoding || 'UTF-8')}</dd><dt>Words</dt><dd>${Number(result.stats?.words || 0).toLocaleString()}</dd><dt>Characters</dt><dd>${Number(result.stats?.characters || 0).toLocaleString()}</dd>${state.doc.path ? `<dt>Location</dt><dd class="detail-path">${escapeHtml(state.doc.path)}</dd>` : '<dt>Location</dt><dd>In-memory preview</dd>'}</dl></div>
     ${metadata.length ? `<div class="detail-group"><span class="detail-label">FRONT MATTER</span><dl class="document-facts metadata-facts">${metadata.map(([key, value]) => `<dt>${escapeHtml(key)}</dt><dd>${escapeHtml(typeof value === 'object' ? JSON.stringify(value) : value)}</dd>`).join('')}</dl></div>` : ''}
     <div class="detail-group"><span class="detail-label">COMPATIBILITY</span>${state.warnings.length ? state.warnings.map(warning => `<div class="compatibility-note"><span class="note-dot"></span><p>${escapeHtml(warning.message || warning)}</p></div>`).join('') : `<div class="compatibility-clear">${icon('check')}<span>No compatibility issues detected.</span></div><p class="detail-small">Rendering can vary between applications. Select a specific format for a closer match.</p>`}</div>`;
-  byId('warning-count').hidden = !state.warnings.length;
-  byId('warning-count').textContent = state.warnings.length;
+  byId('warning-count').hidden = !(state.warnings.length || teamsNotes?.length);
+  byId('warning-count').textContent = state.warnings.length + (teamsNotes?.length || 0);
 }
 
 function updateOutline(headings) {
@@ -470,10 +474,25 @@ async function exportDocument(format) {
   if (state.exporting) return;
   state.exporting = true;
   closePanels();
-  const buttons = [byId('export-toggle'), byId('export-html'), byId('export-pdf')];
+  const buttons = [byId('export-toggle'), byId('export-html'), byId('export-pdf'), byId('export-teams')];
   buttons.forEach(button => { button.disabled = true; });
   setStatus(`Preparing ${format.toUpperCase()} export…`, true);
   try {
+    if (format === 'teams') {
+      // Parse the current draft directly: no stale preview, UI search marks,
+      // image downloads, diagram hydration, or temporary save is involved.
+      const payload = buildTeamsClipboard(state.doc.content, { profile: state.profile, breaks: state.breaks });
+      if (bridge?.copyTeams) await bridge.copyTeams({ html: payload.html, text: payload.text });
+      else if (navigator.clipboard?.write && window.ClipboardItem) await navigator.clipboard.write([new ClipboardItem({
+        'text/html': new Blob([payload.html], { type: 'text/html' }),
+        'text/plain': new Blob([payload.text], { type: 'text/plain' })
+      })]);
+      else throw new Error('Formatted clipboard access is unavailable. Use the Folio desktop app for Copy for Teams.');
+      state.teamsNotes = payload.notes;
+      updateDetails();
+      notify(`Copied for Teams. Paste with Ctrl+V.${payload.notes.length ? ' Conversion notes are in Document details.' : ''}`);
+      return;
+    }
     // Flush the debounce before snapshotting; exports always include the last edit.
     if (editTimer) await render({ preserveScroll: true });
     await renderPromise;
@@ -553,6 +572,7 @@ byId('remote-images').addEventListener('change', async event => {
 byId('compatibility-toggle').addEventListener('click', () => { const panel = byId('details-panel'); panel.hidden = !panel.hidden; byId('compatibility-toggle').setAttribute('aria-expanded', String(!panel.hidden)); });
 byId('details-close').addEventListener('click', () => { byId('details-panel').hidden = true; byId('compatibility-toggle').setAttribute('aria-expanded', 'false'); byId('compatibility-toggle').focus(); });
 byId('export-html').addEventListener('click', () => exportDocument('html'));
+byId('export-teams').addEventListener('click', () => exportDocument('teams'));
 byId('export-pdf').addEventListener('click', openPdfOptions);
 const copyText = text => bridge?.copyText ? bridge.copyText(text) : navigator.clipboard.writeText(text);
 byId('copy-source').addEventListener('click', async () => { try { await copyText(state.doc.content); notify('Markdown copied to clipboard.'); } catch { byId('source-content').select(); notify('Select and copy the source with Ctrl+C.'); } });
@@ -669,6 +689,7 @@ bridge?.onCommand?.(command => {
   else if (action === 'save-as') saveMarkdown(true);
   else if (action === 'find' || action === 'search') toggleSearch(true);
   else if (action === 'export-html') exportDocument('html');
+  else if (action === 'export-teams') exportDocument('teams');
   else if (action === 'export-pdf') openPdfOptions();
   else if (action === 'paste') openPaste();
   else if (action === 'help') byId('help-dialog').showModal();

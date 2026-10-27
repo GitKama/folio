@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('folio', Object.freeze({
   embedResource: (url) => ipcRenderer.invoke('folio:embed', url),
   setRemoteImages: (enabled) => ipcRenderer.invoke('folio:remote-images', enabled),
   copyText: (text) => ipcRenderer.invoke('folio:copy', text),
+  copyTeams: (payload) => ipcRenderer.invoke('folio:copy-teams', payload),
   readDroppedFile: (file) => ipcRenderer.invoke('folio:drop', webUtils.getPathForFile(file)),
   onDocument: (callback) => subscribe('folio:document', callback),
   onCommand: (callback) => subscribe('folio:command', callback)

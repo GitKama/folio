@@ -67,3 +67,7 @@ Markdown/text files are limited to 12 MB. Documents above two million characters
 The file reader handles UTF-8, UTF-8 BOM and BOM-marked UTF-16 LE/BE. Invalid UTF-8 falls back to Windows-1252 for older Windows documents. That fallback is a practical assumption; it is not universal encoding detection.
 
 These limits are deliberate guardrails for a desktop reader; they are not evidence of a formal security audit or full CommonMark conformance certification.
+
+## Microsoft Teams clipboard export (1.3)
+
+Copy for Teams uses conservative rich clipboard HTML plus readable plain text. It targets pasting into the message composer, not bot/card Markdown. Tables become labeled rows; math and diagrams retain source; local images and document links become labels. Oversized output fails without truncation. The reader's Markdown support is broader than Teams paste support. See the [conversion matrix and verified boundaries](docs/teams-export.md).

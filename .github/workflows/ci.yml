@@ -53,7 +53,14 @@ jobs:
           $env:FOLIO_PDF_RESULTS = Join-Path $PWD 'test-results/pdf-packaged'
           npm run test:pdf
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Keep verification reports
+      - name: Verify Teams clipboard export
+        shell: pwsh
+        run: |
+          $env:FOLIO_TEST_EXECUTABLE = (Resolve-Path release/win-unpacked/Folio.exe).Path
+          $env:FOLIO_TEAMS_RESULTS = Join-Path $PWD 'test-results/teams-packaged'
+          npm run test:teams
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload verification reports
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -66,5 +73,7 @@ jobs:
             test-results/pdf-packaged/*.json
             test-results/pdf-packaged/*.png
             test-results/pdf-packaged/*.pdf
+            test-results/teams-packaged/*.json
+            test-results/teams-packaged/*.png
           if-no-files-found: warn
           retention-days: 14

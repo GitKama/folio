@@ -17,9 +17,9 @@
 
 | Download | Use it for |
 | --- | --- |
-| [Portable executable](https://github.com/GitKama/folio/releases/download/v1.2.0/Folio-1.2.0-win-x64.exe) | Launch without installing |
-| [Windows installer](https://github.com/GitKama/folio/releases/download/v1.2.0/Folio-1.2.0-Setup-x64.exe) | Per-user installation and shortcuts |
-| [Source code](https://github.com/GitKama/folio/releases/tag/v1.2.0) | Inspect, build, or change Folio |
+| [Portable executable](https://github.com/GitKama/folio/releases/download/v1.3.0/Folio-1.3.0-win-x64.exe) | Launch without installing |
+| [Windows installer](https://github.com/GitKama/folio/releases/download/v1.3.0/Folio-1.3.0-Setup-x64.exe) | Per-user installation and shortcuts |
+| [Source code](https://github.com/GitKama/folio/releases/tag/v1.3.0) | Inspect, build, or change Folio |
 
 Builds are **unsigned**. Windows may show an unknown-publisher warning. Release pages include SHA-256 checksums, verification results, and license information. Close an older Folio process before launching a different version. Updates are manual; Folio does not run an updater or background service.
 
@@ -31,7 +31,9 @@ Builds are **unsigned**. Windows may show an unknown-publisher warning. Release 
 - **Portable exports:** self-contained HTML and PDF, including supported images, math, and rendered diagrams.
 - **Local by default:** no account, telemetry, or document upload. Remote images are opt-in. External web links open only when followed.
 
-**New in 1.2:** choose **Technical**, **Studio**, or **Editorial** PDF layouts, with readable action cards, meeting section breaks, page numbers and remembered export choices. [Compare the PDF profiles](docs/pdf-export.md).
+**New in 1.3:** use **Export → Copy for Teams**, then **Ctrl+V** in Teams. Copies formatted text with readable fallbacks for tables, math, diagrams and images. Includes unsaved edits and conversion notes. [Teams export guide](docs/teams-export.md).
+
+**PDF layouts since 1.2:** choose **Technical**, **Studio**, or **Editorial** PDF layouts, with readable action cards, meeting section breaks, page numbers and remembered export choices. [Compare the PDF profiles](docs/pdf-export.md).
 
 **Editing since 1.1:** edit in Split or Source with live preview, native undo/redo, Save and Save As. Unsaved-change prompts and external-file conflict handling protect ordinary editing workflows. There is no autosave or crash-recovery store.
 
@@ -42,7 +44,7 @@ Builds are **unsigned**. Windows may show an unknown-publisher warning. Release 
 1. Open a Markdown file with **Ctrl+O**, drag and drop, or Paste Markdown.
 2. Choose **Read**, **Split**, or **Source**. Try another Format if a dialect looks different.
 3. Type in Split or Source; **Ctrl+S** saves and **Ctrl+Shift+S** saves a copy.
-4. Search with **Ctrl+F**, navigate with the outline, or use Export for HTML/PDF.
+4. Search with **Ctrl+F**, navigate with the outline, or use Export for HTML/PDF and Copy for Teams.
 
 Full instructions: [Getting started](docs/getting-started.md).
 
@@ -64,6 +66,10 @@ npm start
 ```
 
 `npm run test:desktop` exercises the real Electron application. `npm run package` builds portable and installer executables in `release/`. See the [developer guide](docs/development.md) and [architecture](docs/architecture.md).
+
+## Roadmap
+
+A future migration to Rust is planned separately. Folio 1.3 continues to use Electron; no migration date or replacement UI framework has been selected. See [ROADMAP.md](ROADMAP.md).
 
 ## Contributing and support
 

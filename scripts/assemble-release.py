@@ -26,6 +26,8 @@ if "test:editor" in package["scripts"]:
     reports.append("editor-packaged/editor-report.json")
 if "test:pdf" in package["scripts"]:
     reports.append("pdf-packaged/pdf-report.json")
+if "test:teams" in package["scripts"]:
+    reports.append("teams-packaged/teams-report.json")
 for report in reports:
     data = json.loads((root / "test-results" / report).read_text(encoding="utf-8"))
     if not data["passed"]:

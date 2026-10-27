@@ -28,6 +28,10 @@ Choose Export → Standalone HTML or PDF. Ctrl+P starts PDF export. HTML bundles
 
 PDF opens a style dialog. Technical is the initial choice; Studio suits everyday reports and Editorial suits longer prose. Adjust wide-table cards and meeting section layout, then choose Save PDF. Folio remembers your choices. Export includes unsaved edits without saving or rewriting the Markdown. See the [PDF guide](pdf-export.md).
 
+## Copy for Teams (1.3)
+
+Choose Export → Copy for Teams, then paste with Ctrl+V into the Teams desktop or web composer. The current draft is copied without saving. Tables become labeled rows, math and diagrams retain their source, and local images become labels. Document details lists conversion notes. Review the pasted draft before sending; plain-text paste removes formatting. See the [Teams export guide](teams-export.md).
+
 ## Local files and images
 
 Images and local Markdown links are resolved relative to the current file, within that folder and its descendants. Use Open for a file outside the folder. Network share paths are not supported. HTTPS images are off by default; enable them in Reading settings if needed.

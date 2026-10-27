@@ -1,0 +1,408 @@
+{
+  "version": "1.3.0",
+  "unitTests": {
+    "passed": 52,
+    "total": 52
+  },
+  "suites": {
+    "viewer": {
+      "passed": true,
+      "checks": [
+        {
+          "name": "Production application opens the initial local fixture",
+          "status": "passed",
+          "durationMs": 343,
+          "details": {
+            "title": "compatibility.md · Folio"
+          }
+        },
+        {
+          "name": "Chromium and preload security boundaries are enabled",
+          "status": "passed",
+          "durationMs": 6,
+          "details": {
+            "allowRunningInsecureContent": false,
+            "contextIsolation": true,
+            "disableDialogs": false,
+            "disablePopups": false,
+            "enableBlinkFeatures": "",
+            "experimentalFeatures": false,
+            "javascript": true,
+            "nodeIntegration": false,
+            "nodeIntegrationInSubFrames": false,
+            "nodeIntegrationInWorker": false,
+            "safeDialogs": false,
+            "safeDialogsMessage": "",
+            "sandbox": true,
+            "webSecurity": true,
+            "webviewTag": false
+          }
+        },
+        {
+          "name": "Renderer bridge refuses unauthorized links and asset capabilities",
+          "status": "passed",
+          "durationMs": 8,
+          "details": {
+            "deniedRequests": 5
+          }
+        },
+        {
+          "name": "Core Markdown, GFM tables, tasks and notes render",
+          "status": "passed",
+          "durationMs": 31,
+          "details": {
+            "headings": 16
+          }
+        },
+        {
+          "name": "Source views preserve the original and dialect profiles change interpretation",
+          "status": "passed",
+          "durationMs": 5881,
+          "details": {
+            "profiles": [
+              "commonmark",
+              "auto"
+            ],
+            "views": [
+              "split",
+              "source",
+              "read"
+            ]
+          }
+        },
+        {
+          "name": "Source and code Copy buttons use the native bridge without broad clipboard permission",
+          "status": "passed",
+          "durationMs": 7948,
+          "details": {
+            "nativeCalls": 2,
+            "osClipboardTouched": false
+          }
+        },
+        {
+          "name": "Mathematics and both diagram engines render locally",
+          "status": "passed",
+          "durationMs": 11,
+          "details": {
+            "math": 3,
+            "mermaid": 1,
+            "graphviz": 1
+          }
+        },
+        {
+          "name": "Callouts and local SVG, PNG and wiki-image embeds render",
+          "status": "passed",
+          "durationMs": 8008,
+          "details": {
+            "localImageCount": 4
+          }
+        },
+        {
+          "name": "Hostile HTML remains inert and executable attributes are stripped",
+          "status": "passed",
+          "durationMs": 5,
+          "details": {
+            "activeElements": 0,
+            "eventAttributes": 0,
+            "unsafeUrls": 0
+          }
+        },
+        {
+          "name": "Outline targets exist and duplicate headings have unique IDs",
+          "status": "passed",
+          "durationMs": 6,
+          "details": {
+            "headingCount": 16,
+            "duplicateIds": [
+              "duplicate-heading",
+              "duplicate-heading-1"
+            ]
+          }
+        },
+        {
+          "name": "Find highlights matches and a theme change preserves readable content",
+          "status": "passed",
+          "durationMs": 8032
+        },
+        {
+          "name": "Standalone HTML exports through the actual UI",
+          "status": "passed",
+          "durationMs": 4135,
+          "details": {
+            "bytes": 425636
+          }
+        },
+        {
+          "name": "Exported HTML reopens independently with images and diagrams",
+          "status": "passed",
+          "durationMs": 233,
+          "details": {
+            "images": [
+              {
+                "alt": "Local SVG illustration",
+                "embedded": true,
+                "width": 640
+              },
+              {
+                "alt": "Local PNG pixel",
+                "embedded": true,
+                "width": 1
+              }
+            ],
+            "embeddedMathFont": true
+          }
+        },
+        {
+          "name": "PDF exports through the actual UI and contains valid pages",
+          "status": "passed",
+          "durationMs": 6286,
+          "details": {
+            "bytes": 356964,
+            "pages": 5,
+            "note": "Binary structure check; separate PDF text extraction and rendered-page review cover visual fidelity."
+          }
+        },
+        {
+          "name": "Wiki links open their local Markdown target",
+          "status": "passed",
+          "durationMs": 1424
+        },
+        {
+          "name": "Native Open command loads another local document",
+          "status": "passed",
+          "durationMs": 1993
+        },
+        {
+          "name": "Changes to an opened local file reload automatically",
+          "status": "passed",
+          "durationMs": 856
+        },
+        {
+          "name": "A native file input crosses the dropped-file preload bridge",
+          "status": "passed",
+          "durationMs": 76
+        },
+        {
+          "name": "Unsupported runtime content stays inert and invalid diagrams do not stop reading",
+          "status": "passed",
+          "durationMs": 53
+        },
+        {
+          "name": "Desktop and narrow layouts remain usable without page overflow",
+          "status": "passed",
+          "durationMs": 4085,
+          "details": {
+            "width": 760,
+            "body": 760,
+            "document": 760
+          }
+        },
+        {
+          "name": "Welcome and dark reading screenshots are captured",
+          "status": "passed",
+          "durationMs": 306
+        },
+        {
+          "name": "No uncaught renderer exceptions occurred",
+          "status": "passed",
+          "durationMs": 1,
+          "details": {
+            "consoleErrorCount": 0,
+            "note": "Missing-image and malformed-diagram fixtures may intentionally produce console diagnostics."
+          }
+        }
+      ],
+      "verifiedAt": "2026-10-27T20:05:29.349Z"
+    },
+    "editor": {
+      "passed": true,
+      "checks": [
+        {
+          "name": "Source and split edit the same text; preview, caret, undo and redo survive rendering",
+          "passed": true
+        },
+        {
+          "name": "Ctrl+S writes real Markdown, preserves CRLF and resets dirty state",
+          "passed": true
+        },
+        {
+          "name": "Cancel Open, discard prompt and Save As preserve the active draft",
+          "passed": true
+        },
+        {
+          "name": "Failed save keeps edits and prevents a Save-and-open transition",
+          "passed": true
+        },
+        {
+          "name": "Save As creates a UTF-8 document and later Save updates only that copy",
+          "passed": true
+        },
+        {
+          "name": "External changes during an Open dialog reload after Cancel",
+          "passed": true
+        },
+        {
+          "name": "External changes reload clean documents but cannot replace unsaved edits",
+          "passed": true
+        },
+        {
+          "name": "Conflict Save a copy preserves the external version",
+          "passed": true
+        },
+        {
+          "name": "Save then Open persists edits; Discard opens without writing them",
+          "passed": true
+        },
+        {
+          "name": "New, Welcome, recent files, dropped files and local links honor Cancel",
+          "passed": true
+        },
+        {
+          "name": "Pasted Markdown is unsaved and can be saved to a real file",
+          "passed": true
+        },
+        {
+          "name": "Immediate HTML export includes the latest unsaved edit",
+          "passed": true
+        },
+        {
+          "name": "Editor layouts work at desktop and minimum window width",
+          "passed": true
+        },
+        {
+          "name": "Close Cancel retains the window and draft",
+          "passed": true
+        },
+        {
+          "name": "Close Save persists the draft before the application exits",
+          "passed": true
+        }
+      ],
+      "verifiedAt": "2026-10-27T20:05:27.010Z"
+    },
+    "pdf": {
+      "passed": true,
+      "checks": [
+        {
+          "name": "Technical defaults, keyboard cancellation and dialog layout",
+          "passed": true
+        },
+        {
+          "name": "technical exports through the dialog without changing Markdown",
+          "passed": true
+        },
+        {
+          "name": "studio exports through the dialog without changing Markdown",
+          "passed": true
+        },
+        {
+          "name": "editorial exports through the dialog without changing Markdown",
+          "passed": true
+        },
+        {
+          "name": "Export choices persist after reloading the app",
+          "passed": true
+        },
+        {
+          "name": "Latest unsaved edit exports in light typography from dark reading mode",
+          "passed": true
+        },
+        {
+          "name": "Canceling native save preserves the draft",
+          "passed": true
+        },
+        {
+          "name": "Long grids, long code and oversized cards remain printable",
+          "passed": true
+        },
+        {
+          "name": "Large export HTML bypasses data URL limits and blocks scripts",
+          "passed": true
+        }
+      ],
+      "verifiedAt": null
+    },
+    "teams": {
+      "passed": true,
+      "checks": [
+        {
+          "name": "Export UI writes HTML and readable text through the native bridge",
+          "passed": true
+        },
+        {
+          "name": "Conversion notes and paste guidance are visible in Document details",
+          "passed": true
+        },
+        {
+          "name": "Immediate export includes unsaved edits and leaves the source file unchanged",
+          "passed": true
+        },
+        {
+          "name": "Native File menu invokes the same Teams export",
+          "passed": true
+        },
+        {
+          "name": "Oversize export does not truncate or replace clipboard contents",
+          "passed": true
+        },
+        {
+          "name": "Native IPC rejects malformed and oversized payloads",
+          "passed": true
+        },
+        {
+          "name": "Clipboard errors remain visible and the export can be retried",
+          "passed": true
+        },
+        {
+          "name": "Menu remains accessible at minimum size and in dark mode",
+          "passed": true
+        }
+      ],
+      "verifiedAt": "2026-10-27T20:06:26.002Z"
+    },
+    "portable": {
+      "passed": true,
+      "checks": [],
+      "verifiedAt": "2026-10-27T20:06:05.938Z"
+    }
+  },
+  "packageIntegrity": {
+    "passed": true,
+    "version": "1.3.0",
+    "applicationFilesCompared": 116,
+    "packageMetadataMatched": true
+  },
+  "teamsDesktopPaste": {
+    "date": "2026-10-27",
+    "fixture": "samples/teams.md",
+    "nativeClipboardHtmlAndText": true,
+    "visuallyChecked": [
+      "bold",
+      "italic",
+      "strikethrough",
+      "inline code",
+      "links",
+      "nested bullets",
+      "numbered list starting at 3",
+      "task markers",
+      "blockquote",
+      "labeled table rows",
+      "Unicode",
+      "fenced code and indentation",
+      "math source",
+      "diagram source",
+      "folded callout body",
+      "local image label",
+      "ending marker"
+    ],
+    "messageSent": false,
+    "testPasteUndone": true,
+    "boundary": "One Windows desktop composer, unsent synthetic draft. Web/mobile and sent messages not tested."
+  },
+  "limits": [
+    "Unsigned Windows x64 builds",
+    "Installer built, not installed into the normal user profile",
+    "Automated clipboard writes and file-dialog responses substituted; actual clipboard and Teams draft checked separately",
+    "No universal Teams fidelity claim"
+  ]
+}
