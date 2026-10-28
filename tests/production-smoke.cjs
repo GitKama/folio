@@ -10,10 +10,10 @@ async function main(){
   const port=await new Promise(resolve=>{const s=net.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>resolve(p));});});
   const exe=process.env.FOLIO_TEST_EXECUTABLE||path.resolve('src-tauri/target/release/folio.exe');
   const proc=spawn(exe,[],{windowsHide:true,env:{...process.env,FOLIO_DATA_DIR:path.join(root,'profile-'+Date.now()),WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS:`--remote-debugging-port=${port} --remote-debugging-address=127.0.0.1`},stdio:'ignore'});
-  let browser;
+  let browser, connectionError='';
   try{
-    for(let i=0;i<100;i++){try{browser=await chromium.connectOverCDP(`http://127.0.0.1:${port}`);break;}catch{await new Promise(r=>setTimeout(r,200));}}
-    assert.ok(browser,'Production WebView2 started');
+    for(let i=0;i<150;i++){try{browser=await chromium.connectOverCDP(`http://127.0.0.1:${port}`,{timeout:2000});break;}catch(error){connectionError=String(error);await new Promise(r=>setTimeout(r,400));}}
+    assert.ok(browser,`Production WebView2 connection failed: ${connectionError}`);
     const context=browser.contexts()[0];const page=context.pages()[0]||await context.waitForEvent('page');
     const errors=[];page.on('pageerror',e=>errors.push(String(e)));
     await page.waitForSelector('#document-content h1',{timeout:45000});

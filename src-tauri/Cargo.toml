@@ -1,6 +1,6 @@
 [package]
 name = "folio"
-version = "2.0.0"
+version = "2.0.1"
 description = "Folio Markdown reader and editor"
 authors = ["Alex"]
 edition = "2021"
@@ -35,3 +35,4 @@ windows = { version = "0.62", features = ["Win32_Foundation", "Win32_System_Com"
 lto = "thin"
 codegen-units = 1
 strip = true
+

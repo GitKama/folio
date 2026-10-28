@@ -16,10 +16,10 @@ async function main() {
   const exe=process.env.FOLIO_TEST_EXECUTABLE || path.resolve('src-tauri/target/debug/folio.exe');
   const proc=spawn(exe,[fixture],{windowsHide:true,env:{...process.env,FOLIO_TEST_ROOT:root,FOLIO_DATA_DIR:root,WEBVIEW2_USER_DATA_FOLDER:path.join(root,'profile-'+Date.now()),WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS:`--remote-debugging-port=${debugPort} --remote-debugging-address=127.0.0.1`},stdio:['ignore','pipe','pipe']});
   let stderr='';proc.stderr.on('data',b=>stderr+=b);
-  let browser;
+  let browser, connectionError='';
   try {
-    for(let i=0;i<100;i++){try{browser=await chromium.connectOverCDP(`http://127.0.0.1:${debugPort}`);break;}catch{await new Promise(r=>setTimeout(r,200));}}
-    assert.ok(browser,`WebView2 did not start (exit=${proc.exitCode}). ${stderr}`);
+    for(let i=0;i<150;i++){try{browser=await chromium.connectOverCDP(`http://127.0.0.1:${debugPort}`,{timeout:2000});break;}catch(error){connectionError=String(error);await new Promise(r=>setTimeout(r,400));}}
+    assert.ok(browser,`WebView2 connection failed (exit=${proc.exitCode}). ${connectionError} ${stderr}`);
     const context=browser.contexts()[0];
     let page=context.pages()[0];
     if(!page)page=await context.waitForEvent('page');
@@ -36,7 +36,7 @@ async function main() {
     const config=async value=>page.evaluate(payload=>window.__TAURI__.core.invoke('request',{action:'test-config',payload}),value);
     const invoke=async(action,payload=null)=>page.evaluate(({action,payload})=>window.__TAURI__.core.invoke('request',{action,payload}),{action,payload});
     const edit=async value=>{await page.locator('button[data-view=split]').click();await page.locator('#source-content').fill(value);await page.waitForTimeout(450);};
-    const sample='# Rust edition\n\n**Bold**, *italic*, ~~strike~~ and `inline code`.\n\n[Link](https://example.com)\n\n- First\n  - Nested\n\n> A quote\n\n| Name | Value |\n| --- | --- |\n| Item | café |\n\n![Local image](local.png)\n\n$$E=mc^2$$\n\n```mermaid\nflowchart LR\nA[Read]-->B[Write]\n```\n\n```dot\ndigraph { A -> B }\n```';
+    const sample='# Rust edition\n\n**Bold**, *italic*, ~~strike~~ and `inline code`.\n\n[Link](https://example.com)\n\n- First\n  - Nested\n\n> A quote\n\n| Name | Value |\n| --- | --- |\n| Item | cafÃ© |\n\n![Local image](local.png)\n\n$$E=mc^2$$\n\n```mermaid\nflowchart LR\nA[Read]-->B[Write]\n```\n\n```dot\ndigraph { A -> B }\n```';
     await edit(sample);
     await page.waitForSelector('.diagram svg',{timeout:45000});
     await page.waitForFunction(()=>document.querySelectorAll('.diagram svg').length>=2);

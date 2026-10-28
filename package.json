@@ -1,6 +1,6 @@
 {
   "name": "folio-markdown-viewer",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Folio — an offline Markdown reader and editor with rich diagrams, dialect profiles and portable exports.",
   "author": "Alex",
   "private": true,
