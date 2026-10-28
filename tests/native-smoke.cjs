@@ -36,7 +36,7 @@ async function main() {
     const config=async value=>page.evaluate(payload=>window.__TAURI__.core.invoke('request',{action:'test-config',payload}),value);
     const invoke=async(action,payload=null)=>page.evaluate(({action,payload})=>window.__TAURI__.core.invoke('request',{action,payload}),{action,payload});
     const edit=async value=>{await page.locator('button[data-view=split]').click();await page.locator('#source-content').fill(value);await page.waitForTimeout(450);};
-    const sample='# Rust edition\n\n**Bold**, *italic*, ~~strike~~ and `inline code`.\n\n[Link](https://example.com)\n\n- First\n  - Nested\n\n> A quote\n\n| Name | Value |\n| --- | --- |\n| Item | cafÃ© |\n\n![Local image](local.png)\n\n$$E=mc^2$$\n\n```mermaid\nflowchart LR\nA[Read]-->B[Write]\n```\n\n```dot\ndigraph { A -> B }\n```';
+    const sample='# Rust edition\n\n**Bold**, *italic*, ~~strike~~ and `inline code`.\n\n[Link](https://example.com)\n\n- First\n  - Nested\n\n> A quote\n\n| Name | Value |\n| --- | --- |\n| Item | café |\n\n![Local image](local.png)\n\n$$E=mc^2$$\n\n```mermaid\nflowchart LR\nA[Read]-->B[Write]\n```\n\n```dot\ndigraph { A -> B }\n```';
     await edit(sample);
     await page.waitForSelector('.diagram svg',{timeout:45000});
     await page.waitForFunction(()=>document.querySelectorAll('.diagram svg').length>=2);

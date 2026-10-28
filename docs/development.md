@@ -22,3 +22,5 @@ Production binaries are in src-tauri/target/release; the installer is in bundle/
 The Windows CI has read-only repository permissions, runs both test layers, builds production artifacts and verifies the final runtime. It does not publish. Keep Cargo.lock and package-lock.json committed. Dependabot checks npm, Cargo and workflow dependencies. Update notices and corresponding-source archives when changing Viz.js/Graphviz.
 
 For isolated verification or a portable profile, set FOLIO_DATA_DIR to an absolute local folder. Both recent files/preferences and WebView2 data stay there. Omit it for the normal Windows profile.
+
+Windows UI CI uses the windows-2022 runner because the windows-2025 image currently has a [reported WebView2 automation regression](https://github.com/actions/runner-images/issues/14738). This does not pin or downgrade the WebView2 runtime on user machines. Local acceptance also runs on Windows 11 with its installed Evergreen runtime.

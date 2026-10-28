@@ -82,4 +82,3 @@ Bug reports, small fixes, and representative Markdown fixtures are welcome. Read
 Folio's original application code is [MIT licensed](LICENSE). Bundled dependencies retain their own licenses: **the complete executable is not exclusively MIT software**. Graphviz is EPL-2.0; its corresponding source and build references are provided with releases. Rust and JavaScript dependency notices are shipped with the app; WebView2 is a separately installed Microsoft runtime. See [third-party licensing](docs/licensing.md), [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt), and [licenses/](licenses/).
 
 Built with Rust, Tauri, WebView2, Vite, Markdown-it, DOMPurify, KaTeX, Mermaid, Viz.js, and Graphviz. Thank you to their maintainers and contributors.
-

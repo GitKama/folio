@@ -4,7 +4,7 @@ The original reader was developed on 16 September 2026. The public repository wa
 
 ## [2.0.1] — 2026-10-28
 
-The first published Rust edition. The v2.0.0 tag records the migration candidate; clean-runner WebView2 provisioning was corrected before publication.
+The first published Rust edition. The v2.0.0 tag records the migration candidate; Windows CI runtime provisioning and runner selection were corrected before publication.
 
 Folio moves from Electron to a Rust/Tauri desktop host with Windows WebView2.
 
@@ -72,4 +72,3 @@ Initial public release of the standalone Windows Markdown viewer.
 [1.1.0]: https://github.com/GitKama/folio/releases/tag/v1.1.0
 
 [1.2.0]: https://github.com/GitKama/folio/releases/tag/v1.2.0
-

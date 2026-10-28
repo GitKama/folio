@@ -14,4 +14,3 @@
   },
   "bundle": { "active": true, "targets": ["nsis"], "icon": ["../build/icon.ico"], "resources": ["../LICENSE", "../THIRD_PARTY_NOTICES.txt", "../licenses/", "../docs/licensing.md"], "windows": { "nsis": { "installMode": "both", "displayLanguageSelector": false }, "webviewInstallMode": { "type": "downloadBootstrapper", "silent": true } } }
 }
-

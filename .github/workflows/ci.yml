@@ -12,7 +12,9 @@ concurrency:
   cancel-in-progress: true
 jobs:
   windows:
-    runs-on: windows-latest
+    # windows-2025 currently breaks WebView2 remote-debugging automation.
+    # https://github.com/actions/runner-images/issues/14738
+    runs-on: windows-2022
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4

@@ -58,16 +58,6 @@ fn escape(s: &str) -> String {
         .replace('\'', "&#39;")
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn titles_cannot_add_markup_or_path_separators() {
-        assert_eq!(escape("<img src='x'>&\""),"&lt;img src=&#39;x&#39;&gt;&amp;&quot;");
-        assert_eq!(safe_title("report/../../x:bad?"),"report-..-..-x-bad-");
-        assert_eq!(safe_title(&"x".repeat(500)).len(),120);
-    }
-}
 pub async fn export(app: &tauri::AppHandle, state: &State, payload: Value) -> Result<Value> {
     let format = text(&payload["format"])?;
     if !["pdf", "html"].contains(&format) {
@@ -138,4 +128,18 @@ pub async fn export(app: &tauri::AppHandle, state: &State, payload: Value) -> Re
         .map_err(|e| e.to_string())?;
     temp.persist(&path).map_err(|e| e.to_string())?;
     Ok(json!({"path":path}))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn titles_cannot_add_markup_or_path_separators() {
+        assert_eq!(
+            escape("<img src='x'>&\""),
+            "&lt;img src=&#39;x&#39;&gt;&amp;&quot;"
+        );
+        assert_eq!(safe_title("report/../../x:bad?"), "report-..-..-x-bad-");
+        assert_eq!(safe_title(&"x".repeat(500)).len(), 120);
+    }
 }
