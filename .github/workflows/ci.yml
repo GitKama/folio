@@ -22,6 +22,19 @@ jobs:
           cache: npm
       - name: Select Rust toolchain
         run: rustup default stable
+      - name: Ensure Microsoft WebView2 runtime
+        shell: pwsh
+        run: |
+          $keys = @('HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}', 'HKLM:\SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}', 'HKCU:\SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}')
+          $runtime = $keys | ForEach-Object { (Get-ItemProperty -LiteralPath $_ -ErrorAction SilentlyContinue).pv } | Where-Object { $_ -and $_ -ne '0.0.0.0' }
+          if (!$runtime) {
+            $installer = Join-Path $env:RUNNER_TEMP 'MicrosoftEdgeWebview2Setup.exe'
+            Invoke-WebRequest 'https://go.microsoft.com/fwlink/p/?LinkId=2124703' -OutFile $installer
+            $signature = Get-AuthenticodeSignature -LiteralPath $installer
+            if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notlike '*Microsoft Corporation*') { throw 'Invalid Microsoft runtime installer signature' }
+            $process = Start-Process -FilePath $installer -ArgumentList '/silent','/install' -WindowStyle Hidden -Wait -PassThru
+            if ($process.ExitCode -notin @(0,3010)) { throw "WebView2 installation failed: $($process.ExitCode)" }
+          }
       - run: npm ci
       - run: npm test
       - run: npm run test:rust
@@ -43,6 +56,7 @@ jobs:
             test-results/native/*.json
             test-results/native/*.png
             test-results/native/*.pdf
+            test-results/native/*.log
             test-results/production/*.json
             test-results/production/*.png
           if-no-files-found: warn

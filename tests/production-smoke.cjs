@@ -30,7 +30,7 @@ async function main(){
     await page.waitForFunction(()=>document.getElementById('toast').textContent.includes('Copied for Teams'));
     await page.screenshot({path:path.join(root,'production.png')});
     assert.deepEqual(errors,[]);
-    await fs.writeFile(path.join(root,'report.json'),JSON.stringify({version:'2.0.0',passed:true,sha256:crypto.createHash('sha256').update(await fs.readFile(exe)).digest('hex'),checks:['Embedded production frontend starts','Welcome math and diagrams render','Compile-time test commands are absent','Live source editing renders','Native Teams clipboard write succeeds','No uncaught renderer errors']},null,2));
+    await fs.writeFile(path.join(root,'report.json'),JSON.stringify({version:require('../package.json').version,passed:true,sha256:crypto.createHash('sha256').update(await fs.readFile(exe)).digest('hex'),checks:['Embedded production frontend starts','Welcome math and diagrams render','Compile-time test commands are absent','Live source editing renders','Native Teams clipboard write succeeds','No uncaught renderer errors']},null,2));
     console.log('Production smoke: 6 checks passed.');
   }finally{await browser?.close();proc.kill();}
 }

@@ -19,7 +19,7 @@ async function main() {
   let browser;
   try {
     for(let i=0;i<100;i++){try{browser=await chromium.connectOverCDP(`http://127.0.0.1:${debugPort}`);break;}catch{await new Promise(r=>setTimeout(r,200));}}
-    assert.ok(browser,'WebView2 debugging endpoint opened');
+    assert.ok(browser,`WebView2 did not start (exit=${proc.exitCode}). ${stderr}`);
     const context=browser.contexts()[0];
     let page=context.pages()[0];
     if(!page)page=await context.waitForEvent('page');
@@ -120,7 +120,7 @@ async function main() {
     await page.getByRole('button',{name:'Close PDF options',exact:true}).click();
     checks.push({name:'Light, dark, split and compact layouts captured',passed:true});
     assert.ok(!checks.some(c=>c.error),JSON.stringify(checks.filter(c=>c.error)));
-    await fs.writeFile(path.join(root,'report.json'),JSON.stringify({version:'2.0.0',passed:true,checks},null,2));
+    await fs.writeFile(path.join(root,'report.json'),JSON.stringify({version:require('../package.json').version,passed:true,checks},null,2));
     console.log(JSON.stringify({passed:true,checks:checks.length}));
   } finally {await browser?.close();proc.kill();await fs.writeFile(path.join(root,'runtime.log'),stderr);}
 }
