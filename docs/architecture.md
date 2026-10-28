@@ -1,49 +1,38 @@
 # Architecture
 
-Folio is an Electron application with a Vite-built renderer. It operates on one document at a time and keeps interpretation separate from the input text.
+Folio 2 uses a Rust/Tauri desktop host and Windows WebView2. The system webview displays a bundled Vite application. No Electron, Node runtime or bundled Chromium distribution is shipped. The document renderer remains JavaScript; this is a Rust desktop migration, not a rewrite of every parser in Rust.
 
-```mermaid
-flowchart LR
-  File[Local Markdown] --> Main[Electron main process]
-  Main <-->|Narrow IPC bridge| Preload[Preload]
-  Preload <--> UI[Reader interface]
-  UI --> Parser[Markdown and sanitization]
-  Parser --> Preview[Rendered document]
-  Preview --> Diagrams[Mermaid and Graphviz worker]
-  Preview --> Export[HTML snapshot / PDF]
-```
-
-| Area | Files |
+| Responsibility | Implementation |
 | --- | --- |
-| Window, IPC, dialogs, file watching, export | electron/main.cjs |
-| Minimal native bridge | electron/preload.cjs |
-| Files, encodings, contained paths | electron/files.cjs |
-| Interface and document state | src/app.js |
+| Window, native menus, IPC, document lifecycle | src-tauri/src/main.rs |
+| Encodings, revisions, atomic saves, contained paths | src-tauri/src/files.rs |
+| Native dialogs; separately compiled test substitutes | src-tauri/src/dialogs.rs |
+| Isolated PDF renderer and export files | src-tauri/src/pdf.rs |
+| Ordered frontend/native bridge | src/native.js |
+| Reader/editor interface | src/app.js, src/style.css |
 | Markdown dialects and sanitization | src/engine.js |
-| Diagrams | src/diagrams.js, src/graphviz.worker.js |
-| Standalone export | src/export.js |
-| Teams clipboard conversion | src/teams-export.js |
+| Mermaid and Graphviz worker | src/diagrams.js, src/graphviz.worker.js |
+| HTML/PDF snapshots and profile transformations | src/export.js, src/pdf-profiles.js, src/pdf.css |
+| Teams semantic HTML and plain text | src/teams-export.js |
 
-The renderer enables context isolation and sandboxing and disables Node integration. IPC checks the sender and main frame. HTML/SVG is sanitized; navigation and webviews are blocked. Asset capabilities restrict local images, with realpath checks for junctions. Remote images are opt-in.
+## Trust boundary
 
-PDF uses a restricted renderer. Diagrams have count/size limits; Graphviz runs in a worker with a timeout. These are practical, tested boundaries, not a formal security certification.
+Only the main bundled webview receives the application request capability. It has no general filesystem, shell or window-creation plugin. Navigation is constrained. Document scripts, frames and interactive application controls are removed; local assets are resolved against the current document folder with canonical-path checks. Per-document asset URLs avoid stale image caching. Remote images require opt-in. HTTP(S) links open externally only after a click.
 
-## Editing in 1.1
+## Document lifecycle
 
-The renderer keeps text separate from its saved baseline. Preview rendering is debounced and does not reset the textarea, caret or native undo history. Pending previews are flushed before export.
+The frontend serializes native requests so a pending draft reaches Rust before a save. Rust owns the saved baseline, encoding and SHA-256 disk revision. Saves write and flush a same-directory temporary file, check the expected revision, then atomically replace the destination. Unchanged mixed line endings and BOMs survive round trips. Unrepresentable Windows-1252 edits require Save As to UTF-8.
 
-The main process maintains the draft for native close/open protection. Saving uses a same-directory temporary file, flush, revision checks and rename. Changed disk revisions prompt a conflict decision. Watching reloads clean documents and preserves unsaved drafts. This is optimistic conflict detection, not collaborative file locking.
+A 900ms application-owned polling loop reloads clean documents and flags conflicts for dirty documents. It stops with the application; there is no background service. Native close asks the frontend to flush the latest draft, then Rust presents Save/Discard/Cancel. This is optimistic conflict detection, not collaborative locking or crash recovery.
 
-## PDF profiles in 1.2
+## Clipboard and export
 
-`src/pdf-profiles.js` transforms an export clone; `src/pdf.css` provides print typography. The reader and Markdown text remain unchanged. Complex spanning/nested tables keep their grid. The selector persists local preferences independently of Markdown dialect settings.
+Teams uses Windows CF_HTML and CF_UNICODETEXT under one clipboard lock. The converter preserves readable fallbacks and rejects oversized output. No Teams API, login or message-sending capability exists.
 
-`electron/pdf.cjs` supplies escaped running headers, page numbers and Chromium print options. A one-document `folio-print` protocol lives in a fresh in-memory session, avoiding data URL size limits. The print renderer remains sandboxed, with scripts, network access and local file access blocked. The protocol handler and window are removed after export.
+PDF exports render a self-contained snapshot in a hidden WebView2 with no application capabilities and a restrictive CSP. Native DevTools protocol calls await fonts/images and generate the PDF with A4 pagination, profile styles, headers and footers. The temporary renderer is destroyed afterward. HTML and PDF are fully generated before replacing an existing export.
 
-## Teams clipboard in 1.3
+## Settings and testing
 
-The converter parses the current source using the selected dialect, then reconstructs a narrow semantic HTML subset and readable text. It does not use the hydrated preview or fetch assets. The native bridge validates payload types and sizes, fixes the allowed MIME types to text/html and text/plain, and awaits an atomic Electron ClipboardItem write. Document details retains notes for the last successful copy. There is no Teams API integration or message sending.
+Rust stores recent files and preferences under the app configuration directory. WebView2 also retains the interface preferences locally. Existing Electron recent files are imported on first launch; the old profile is not modified. Reading preferences from 1.x may be imported as preferences.json; otherwise 2.0 starts with its defaults.
 
-## Future implementation
-
-A future Rust migration is planned separately; the current implementation remains Electron. See [the roadmap](../ROADMAP.md) for the preservation and validation requirements.
+The test-harness Cargo feature substitutes dialog choices and allows synthetic clipboard inspection. It requires an isolated test root. Production packages omit this feature; the production smoke check verifies that test commands are unavailable. Unit tests exercise parsing, conversion, encoding and conflict safety. Native integration checks drive the actual WebView2 app and filesystem.

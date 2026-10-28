@@ -2,7 +2,7 @@
 
 ## Install or launch
 
-Download a Windows x64 build from [Releases](https://github.com/GitKama/folio/releases). The portable EXE runs without installation; the installer provides a per-user installation and shortcuts. Builds are unsigned. No account or separate rendering tools are needed. Close the old app before switching versions.
+Download a Windows x64 build from [Releases](https://github.com/GitKama/folio/releases). Folio 2.0 uses Rust and Microsoft Edge WebView2. The portable EXE runs without installing Folio when WebView2 is already present; the installer creates shortcuts and can obtain WebView2 if needed. Builds are unsigned. No account or separate rendering tools are needed. Close the old app before switching versions.
 
 ## Open and read
 

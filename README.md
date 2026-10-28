@@ -13,13 +13,13 @@
 
 ## Download
 
-**Windows 10/11, x64.** No separate Node.js, Python, browser, or Pandoc installation is needed to run the app.
+**Windows 10/11, x64, with Microsoft Edge WebView2.** The installer can obtain WebView2 when missing; the portable executable requires it already installed. No Node.js, Python or Pandoc is needed.
 
 | Download | Use it for |
 | --- | --- |
-| [Portable executable](https://github.com/GitKama/folio/releases/download/v1.3.0/Folio-1.3.0-win-x64.exe) | Launch without installing |
-| [Windows installer](https://github.com/GitKama/folio/releases/download/v1.3.0/Folio-1.3.0-Setup-x64.exe) | Per-user installation and shortcuts |
-| [Source code](https://github.com/GitKama/folio/releases/tag/v1.3.0) | Inspect, build, or change Folio |
+| [Portable executable](https://github.com/GitKama/folio/releases/download/v2.0.0/Folio-2.0.0-win-x64.exe) | Launch without installing |
+| [Windows installer](https://github.com/GitKama/folio/releases/download/v2.0.0/Folio-2.0.0-Setup-x64.exe) | Windows installation and shortcuts |
+| [Source code](https://github.com/GitKama/folio/releases/tag/v2.0.0) | Inspect, build, or change Folio |
 
 Builds are **unsigned**. Windows may show an unknown-publisher warning. Release pages include SHA-256 checksums, verification results, and license information. Close an older Folio process before launching a different version. Updates are manual; Folio does not run an updater or background service.
 
@@ -31,7 +31,9 @@ Builds are **unsigned**. Windows may show an unknown-publisher warning. Release 
 - **Portable exports:** self-contained HTML and PDF, including supported images, math, and rendered diagrams.
 - **Local by default:** no account, telemetry, or document upload. Remote images are opt-in. External web links open only when followed.
 
-**New in 1.3:** use **Export → Copy for Teams**, then **Ctrl+V** in Teams. Copies formatted text with readable fallbacks for tables, math, diagrams and images. Includes unsaved edits and conversion notes. [Teams export guide](docs/teams-export.md).
+**New in 2.0:** rebuilt with a Rust/Tauri desktop host and the Windows WebView2 runtime, replacing Electron. A new blue-and-slate interface provides a compact navigation pane, spacious reading paper, light/dark themes and a focused split editor. File operations, native menus, dialogs, clipboard and PDF generation run through Rust. The bundled Markdown rendering engine remains JavaScript.
+
+**Teams export:** use **Export → Copy for Teams**, then **Ctrl+V** in Teams. Copies formatted text with readable fallbacks for tables, math, diagrams and images. Includes unsaved edits and conversion notes. [Teams export guide](docs/teams-export.md).
 
 **PDF layouts since 1.2:** choose **Technical**, **Studio**, or **Editorial** PDF layouts, with readable action cards, meeting section breaks, page numbers and remembered export choices. [Compare the PDF profiles](docs/pdf-export.md).
 
@@ -54,7 +56,7 @@ Folio does not execute MDX components, notebook cells, document scripts, or site
 
 ## Build and test
 
-Requires Windows x64, Git, and Node.js **22.22 or newer** (CI uses Node 22).
+Requires Windows x64, Git, Node.js **22.22 or newer**, Rust stable (MSVC), Visual Studio C++ Build Tools/Windows SDK, and WebView2.
 
 ```powershell
 git clone https://github.com/GitKama/folio.git
@@ -65,11 +67,11 @@ npm run build
 npm start
 ```
 
-`npm run test:desktop` exercises the real Electron application. `npm run package` builds portable and installer executables in `release/`. See the [developer guide](docs/development.md) and [architecture](docs/architecture.md).
+`npm run test:rust` checks native file safety. Run `npm run test:native-build`, then `npm run test:desktop` for the real Rust/WebView2 integration suite. `npm run package` creates the production executable and installer under `src-tauri/target/release/`. See the [developer guide](docs/development.md) and [architecture](docs/architecture.md).
 
 ## Roadmap
 
-A future migration to Rust is planned separately. Folio 1.3 continues to use Electron; no migration date or replacement UI framework has been selected. See [ROADMAP.md](ROADMAP.md).
+The Rust desktop migration is complete in 2.0. See [ROADMAP.md](ROADMAP.md) for possible follow-ups.
 
 ## Contributing and support
 
@@ -77,6 +79,6 @@ Bug reports, small fixes, and representative Markdown fixtures are welcome. Read
 
 ## License and acknowledgments
 
-Folio's original application code is [MIT licensed](LICENSE). Bundled dependencies retain their own licenses: **the complete executable is not exclusively MIT software**. Graphviz is EPL-2.0; its corresponding source and build references are provided with releases. Electron/Chromium and other notices are shipped with the app. See [third-party licensing](docs/licensing.md), [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt), and [licenses/](licenses/).
+Folio's original application code is [MIT licensed](LICENSE). Bundled dependencies retain their own licenses: **the complete executable is not exclusively MIT software**. Graphviz is EPL-2.0; its corresponding source and build references are provided with releases. Rust and JavaScript dependency notices are shipped with the app; WebView2 is a separately installed Microsoft runtime. See [third-party licensing](docs/licensing.md), [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt), and [licenses/](licenses/).
 
-Built with Electron, Vite, Markdown-it, DOMPurify, KaTeX, Mermaid, Viz.js, and Graphviz. Thank you to their maintainers and contributors.
+Built with Rust, Tauri, WebView2, Vite, Markdown-it, DOMPurify, KaTeX, Mermaid, Viz.js, and Graphviz. Thank you to their maintainers and contributors.

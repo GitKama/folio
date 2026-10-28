@@ -1,3 +1,4 @@
+import './native.js';
 import './style.css';
 import './document.css';
 import 'katex/dist/katex.min.css';
@@ -68,22 +69,22 @@ const bridge = window.folio;
 document.getElementById('app').innerHTML = `
   <div class="app-shell" id="app-shell">
     <aside class="sidebar" aria-label="Document navigation">
-      <div class="brand"><span class="brand-mark">${icon('folio')}</span><span>folio<span class="brand-dot">.</span></span><span class="brand-caption">A CLEARER VIEW</span></div>
+      <div class="brand"><span class="brand-mark">${icon('folio')}</span><span>Folio</span><span class="brand-caption">2.0</span></div>
       <button class="open-button" id="open-file" title="Open file" aria-label="Open file">${icon('plus')}<span>Open document</span><kbd>Ctrl O</kbd></button>
       <button class="paste-link" id="paste-open">${icon('paste')}<span>Paste Markdown</span></button>
       <button class="paste-link" id="new-document" title="New Markdown (Ctrl+N)">${icon('plus')}<span>New document</span></button>
       <div class="sidebar-scroll">
         <details class="sidebar-section" open>
-          <summary><span>IN THIS DOCUMENT</span>${icon('chevron')}</summary>
+          <summary><span>Outline</span>${icon('chevron')}</summary>
           <nav id="outline" aria-label="Table of contents"></nav>
         </details>
         <details class="sidebar-section recent-section" open>
-          <summary><span>RECENT DOCUMENTS</span>${icon('chevron')}</summary>
+          <summary><span>Recent documents</span>${icon('chevron')}</summary>
           <div id="recent-files" class="recent-files"></div>
         </details>
       </div>
       <div class="sidebar-foot"><button id="welcome-button" title="Open the welcome document">${icon('folio')}<span>Welcome to Folio</span></button><button id="help-button" title="Keyboard shortcuts and format support" aria-label="Help">${icon('help')}</button></div>
-      <div class="sidebar-version">MADE FOR THE WAY YOU READ</div>
+      <div class="sidebar-version">Your documents. On your device.</div>
     </aside>
     <button class="sidebar-scrim" id="sidebar-scrim" aria-label="Close navigation"></button>
     <div class="main-shell">
@@ -96,25 +97,25 @@ document.getElementById('app').innerHTML = `
           <button class="icon-button" id="theme-toggle" title="Switch to dark theme" aria-label="Switch to dark theme">${icon('moon')}</button>
           <button class="icon-button" id="settings-toggle" title="Reading settings" aria-label="Reading settings" aria-expanded="false">${icon('settings')}</button>
           <div class="popover-anchor"><button class="export-button" id="export-toggle" title="Export document" aria-expanded="false">${icon('export')}<span>Export</span>${icon('chevron')}</button>
-            <div class="menu popover" id="export-menu" hidden><span class="popover-eyebrow">TAKE IT WITH YOU</span><button id="export-html" title="Export HTML" aria-label="Export HTML">${icon('file')}<span><strong>Standalone HTML</strong><small>A self-contained reading copy</small></span></button><button id="export-teams" title="Copy formatted text for Microsoft Teams" aria-label="Copy for Teams">${icon('copy')}<span><strong>Copy for Teams</strong><small>Formatted text, ready to paste</small></span></button><button id="export-pdf" title="Export PDF" aria-label="Export PDF">${icon('file')}<span><strong>PDF document</strong><small>Ready to print or share</small></span></button></div>
+            <div class="menu popover" id="export-menu" hidden><button id="export-html" title="Export HTML" aria-label="Export HTML">${icon('file')}<span><strong>Standalone HTML</strong><small>A self-contained reading copy</small></span></button><button id="export-teams" title="Copy formatted text for Microsoft Teams" aria-label="Copy for Teams">${icon('copy')}<span><strong>Copy for Teams</strong><small>Formatted text, ready to paste</small></span></button><button id="export-pdf" title="Export PDF" aria-label="Export PDF">${icon('file')}<span><strong>PDF document</strong><small>Ready to print or share</small></span></button></div>
           </div>
         </div>
       </header>
       <div class="search-bar" id="search-bar" hidden><div class="search-field">${icon('search')}<input id="search-input" type="search" placeholder="Find in this document…" aria-label="Search document" autocomplete="off"/><span id="search-count" aria-live="polite"></span></div><button class="icon-button" id="search-prev" title="Previous match (Shift+Enter)" aria-label="Previous match">${icon('up')}</button><button class="icon-button" id="search-next" title="Next match (Enter)" aria-label="Next match">${icon('down')}</button><button class="icon-button" id="search-close" title="Close search (Esc)" aria-label="Close search">${icon('close')}</button></div>
-      <div class="document-bar"><div class="document-context"><span class="context-dot"></span><span id="document-location">YOUR READING SPACE</span></div><div class="document-options"><label class="profile-selector" title="Choose how Markdown is interpreted"><span>Format</span><select id="profile-select" aria-label="Markdown format">${profiles.map(profile => `<option value="${escapeHtml(profile.id)}">${escapeHtml(profileLabel(profile.id))}</option>`).join('')}</select>${icon('chevron')}</label><button class="compatibility-button" id="compatibility-toggle" title="Document details and compatibility" aria-label="Document details and compatibility" aria-expanded="false">${icon('info')}<span id="compatibility-label">Document details</span><span id="warning-count" hidden></span></button></div></div>
+      <div class="document-bar"><div class="document-context"><span class="context-dot"></span><span id="document-location">On this device</span></div><div class="document-options"><label class="profile-selector" title="Choose how Markdown is interpreted"><span>Format</span><select id="profile-select" aria-label="Markdown format">${profiles.map(profile => `<option value="${escapeHtml(profile.id)}">${escapeHtml(profileLabel(profile.id))}</option>`).join('')}</select>${icon('chevron')}</label><button class="compatibility-button" id="compatibility-toggle" title="Document details and compatibility" aria-label="Document details and compatibility" aria-expanded="false">${icon('info')}<span id="compatibility-label">Document details</span><span id="warning-count" hidden></span></button></div></div>
       <main class="workspace" id="workspace">
-        <section class="source-pane" id="source-pane" aria-label="Markdown source"><div class="source-heading"><span>MARKDOWN SOURCE · EDITABLE</span><button class="icon-button" id="copy-source" title="Copy Markdown source" aria-label="Copy Markdown source">${icon('copy')}</button></div><textarea id="source-content" spellcheck="false" aria-label="Markdown editor" maxlength="12582912" wrap="off"></textarea><div class="source-foot"><span id="save-state" role="status">Saved</span><span>·</span><button id="save-as">Save As…</button><span>·</span><button id="source-paste">Paste another document</button></div></section>
-        <div class="reader-scroll" id="reader-scroll"><div class="reading-paper"><div class="document-kicker" id="document-kicker"><span class="kicker-line"></span><span id="kicker-label">THE FOLIO FIELD GUIDE</span></div><article class="folio-document" id="document-content" tabindex="-1" aria-label="Rendered Markdown document"></article><div class="document-end"><span></span>${icon('folio')}<span></span></div></div></div>
+        <section class="source-pane" id="source-pane" aria-label="Markdown source"><div class="source-heading"><span>Markdown source</span><button class="icon-button" id="copy-source" title="Copy Markdown source" aria-label="Copy Markdown source">${icon('copy')}</button></div><textarea id="source-content" spellcheck="false" aria-label="Markdown editor" maxlength="12582912" wrap="off"></textarea><div class="source-foot"><span id="save-state" role="status">Saved</span><span>·</span><button id="save-as">Save As…</button><span>·</span><button id="source-paste">Paste another document</button></div></section>
+        <div class="reader-scroll" id="reader-scroll"><div class="reading-paper"><article class="folio-document" id="document-content" tabindex="-1" aria-label="Rendered Markdown document"></article><div class="document-end"><span></span>${icon('folio')}<span></span></div></div></div>
         <aside class="details-panel" id="details-panel" hidden aria-label="Document details"><div class="panel-heading"><h2>Document details</h2><button class="icon-button" id="details-close" title="Close details" aria-label="Close document details">${icon('close')}</button></div><div id="details-content"></div></aside>
       </main>
       <footer class="status-bar"><div><span class="status-ready-dot" id="status-dot"></span><span id="status-message">Ready to read</span></div><div class="status-stats"><span id="word-count"></span><span class="status-separator">·</span><span id="reading-time"></span><span class="status-separator optional-status">·</span><span class="optional-status" id="format-status"></span></div></footer>
     </div>
-    <section class="settings-panel popover" id="settings-panel" hidden aria-label="Reading settings"><span class="popover-eyebrow">MAKE YOURSELF COMFORTABLE</span><h2>Reading settings</h2><div class="setting-row"><label for="font-size">Text size</label><output id="font-size-value">17 px</output></div><input id="font-size" type="range" min="14" max="24" step="1" value="17"/><div class="size-hints"><span>Aa</span><span>Aa</span></div><label class="checkbox-setting"><span><strong>Soft line breaks</strong><small>Render each source line on a new line</small></span><input type="checkbox" id="line-breaks"/></label><label class="checkbox-setting"><span><strong>Load remote images</strong><small>Allow images from websites referenced by a document</small></span><input type="checkbox" id="remote-images"/></label><p class="settings-note">Your reading preferences are saved on this device.</p></section>
-    <div class="drop-overlay" id="drop-overlay" hidden><div>${icon('open')}<h2>A fresh page awaits.</h2><p>Drop your Markdown document here</p><span>.md · .markdown · .mdx · .txt</span></div></div>
+    <section class="settings-panel popover" id="settings-panel" hidden aria-label="Reading settings"><h2>Reading settings</h2><div class="setting-row"><label for="font-size">Text size</label><output id="font-size-value">17 px</output></div><input id="font-size" type="range" min="14" max="24" step="1" value="17"/><div class="size-hints"><span>Aa</span><span>Aa</span></div><label class="checkbox-setting"><span><strong>Soft line breaks</strong><small>Render each source line on a new line</small></span><input type="checkbox" id="line-breaks"/></label><label class="checkbox-setting"><span><strong>Load remote images</strong><small>Allow images from websites referenced by a document</small></span><input type="checkbox" id="remote-images"/></label><p class="settings-note">Your reading preferences are saved on this device.</p></section>
+    <div class="drop-overlay" id="drop-overlay" hidden><div>${icon('open')}<h2>Open a Markdown document</h2><p>Drop your Markdown document here</p><span>.md · .markdown · .mdx · .txt</span></div></div>
     <div class="toast" id="toast" role="status" hidden></div>
     <input type="file" id="file-input" accept=".md,.markdown,.mdown,.mkd,.mkdn,.mdx,.qmd,.rmd,.txt" hidden/>
-    <dialog id="paste-dialog" class="folio-dialog"><form method="dialog"><div class="dialog-heading"><div><span class="popover-eyebrow">A SPACE FOR A FRAGMENT</span><h2>Paste your Markdown</h2></div><button class="icon-button" value="cancel" aria-label="Close paste dialog">${icon('close')}</button></div><label class="sr-only" for="paste-content">Markdown to preview</label><textarea id="paste-content" placeholder="# Something worth reading\n\nPaste your Markdown here…" spellcheck="false"></textarea><div class="dialog-actions"><span>Preview a document in Folio</span><button value="cancel" class="quiet-button">Cancel</button><button id="paste-submit" type="button" class="primary-button">Open preview ${icon('arrow')}</button></div></form></dialog>
-    <dialog id="help-dialog" class="folio-dialog help-dialog"><form method="dialog"><div class="dialog-heading"><div><span class="popover-eyebrow">A LITTLE GUIDANCE</span><h2>At home in Folio</h2></div><button class="icon-button" aria-label="Close help">${icon('close')}</button></div><div class="help-body"><p>A standalone reader and editor for CommonMark, GitHub Markdown, Obsidian notes, and extended Markdown.</p><div class="shortcut-row"><span>Open a document</span><kbd>Ctrl O</kbd></div><div class="shortcut-row"><span>Save Markdown</span><kbd>Ctrl S</kbd></div><div class="shortcut-row"><span>Save As</span><kbd>Ctrl Shift S</kbd></div><div class="shortcut-row"><span>New document</span><kbd>Ctrl N</kbd></div><div class="shortcut-row"><span>Undo / redo edits</span><span><kbd>Ctrl Z</kbd> / <kbd>Ctrl Y</kbd></span></div><div class="shortcut-row"><span>Find in the document</span><kbd>Ctrl F</kbd></div><div class="shortcut-row"><span>Next / previous search match</span><span><kbd>Enter</kbd> / <kbd>Shift Enter</kbd></span></div><div class="shortcut-row"><span>Close a panel or search</span><kbd>Esc</kbd></div><h3>Paste into Microsoft Teams</h3><p>Use Export → Copy for Teams, then Ctrl+V in the Teams desktop or web composer. Tables become labeled rows; math and diagrams keep their source. Document details lists conversion notes. Review the pasted draft before sending.</p><h3>When a document looks different</h3><p>Try its matching format in the toolbar. Dialects can interpret the same syntax differently; document details show supported features and compatibility notes.</p><p>Executable content such as MDX components and notebook code needs its original runtime. Folio displays the readable content and surfaces detected limitations.</p><p class="help-version">FOLIO <span>·</span> Markdown, clearly.</p></div><div class="dialog-actions"><button class="primary-button">Back to reading ${icon('arrow')}</button></div></form></dialog>
+    <dialog id="paste-dialog" class="folio-dialog"><form method="dialog"><div class="dialog-heading"><div><h2>Paste your Markdown</h2></div><button class="icon-button" value="cancel" aria-label="Close paste dialog">${icon('close')}</button></div><label class="sr-only" for="paste-content">Markdown to preview</label><textarea id="paste-content" placeholder="# Something worth reading\n\nPaste your Markdown here…" spellcheck="false"></textarea><div class="dialog-actions"><span>Preview a document in Folio</span><button value="cancel" class="quiet-button">Cancel</button><button id="paste-submit" type="button" class="primary-button">Open preview ${icon('arrow')}</button></div></form></dialog>
+    <dialog id="help-dialog" class="folio-dialog help-dialog"><form method="dialog"><div class="dialog-heading"><div><h2>At home in Folio</h2></div><button class="icon-button" aria-label="Close help">${icon('close')}</button></div><div class="help-body"><p>A standalone reader and editor for CommonMark, GitHub Markdown, Obsidian notes, and extended Markdown.</p><div class="shortcut-row"><span>Open a document</span><kbd>Ctrl O</kbd></div><div class="shortcut-row"><span>Save Markdown</span><kbd>Ctrl S</kbd></div><div class="shortcut-row"><span>Save As</span><kbd>Ctrl Shift S</kbd></div><div class="shortcut-row"><span>New document</span><kbd>Ctrl N</kbd></div><div class="shortcut-row"><span>Undo / redo edits</span><span><kbd>Ctrl Z</kbd> / <kbd>Ctrl Y</kbd></span></div><div class="shortcut-row"><span>Find in the document</span><kbd>Ctrl F</kbd></div><div class="shortcut-row"><span>Next / previous search match</span><span><kbd>Enter</kbd> / <kbd>Shift Enter</kbd></span></div><div class="shortcut-row"><span>Close a panel or search</span><kbd>Esc</kbd></div><h3>Paste into Microsoft Teams</h3><p>Use Export → Copy for Teams, then Ctrl+V in the Teams desktop or web composer. Tables become labeled rows; math and diagrams keep their source. Document details lists conversion notes. Review the pasted draft before sending.</p><h3>When a document looks different</h3><p>Try its matching format in the toolbar. Dialects can interpret the same syntax differently; document details show supported features and compatibility notes.</p><p>Executable content such as MDX components and notebook code needs its original runtime. Folio displays the readable content and surfaces detected limitations.</p><p class="help-version">FOLIO <span>·</span> Markdown, clearly.</p></div><div class="dialog-actions"><button class="primary-button">Back to reading ${icon('arrow')}</button></div></form></dialog>
   </div>`;
 
 document.querySelectorAll('[id]').forEach(element => uiElements.set(element.id, element));
@@ -125,7 +126,7 @@ const pdfDialog = document.createElement('dialog');
 pdfDialog.id = 'pdf-dialog';
 pdfDialog.className = 'folio-dialog pdf-dialog';
 pdfDialog.setAttribute('aria-labelledby', 'pdf-dialog-title');
-pdfDialog.innerHTML = `<form method="dialog"><div class="dialog-heading"><div><span class="popover-eyebrow">A BETTER PRINTED PAGE</span><h2 id="pdf-dialog-title">Export PDF</h2></div><button class="icon-button" value="cancel" aria-label="Close PDF options">${icon('close')}</button></div>
+pdfDialog.innerHTML = `<form method="dialog"><div class="dialog-heading"><div><h2 id="pdf-dialog-title">Export PDF</h2></div><button class="icon-button" value="cancel" aria-label="Close PDF options">${icon('close')}</button></div>
   <div class="pdf-options"><fieldset class="pdf-profiles"><legend>Document style</legend>${pdfProfiles.map(p => `<label class="pdf-profile-card"><input type="radio" name="pdf-profile" value="${p.id}"><span class="pdf-swatch pdf-${p.id}" aria-hidden="true">Aa</span><span><strong>${p.label}</strong><small>${p.description}</small></span></label>`).join('')}</fieldset>
   <label class="checkbox-setting"><span><strong>Readable cards for wide tables</strong><small>Reflow tables with four or more columns, preserving every value.</small></span><input type="checkbox" id="pdf-cards"></label>
   <label class="checkbox-setting"><span><strong>Meeting section layout</strong><small>Use bold section labels as headings; start Action Items and Discussion Highlights on new pages.</small></span><input type="checkbox" id="pdf-meetings"></label>
@@ -153,7 +154,9 @@ byId('pdf-save').addEventListener('click', () => {
 });
 
 function persist() {
-  try { localStorage.setItem('folio.settings', JSON.stringify(Object.fromEntries(Object.keys(defaults).map(key => [key, state[key]])))); } catch { /* Reading still works when storage is unavailable. */ }
+  const preferences = Object.fromEntries(Object.keys(defaults).map(key => [key, state[key]]));
+  try { localStorage.setItem('folio.settings', JSON.stringify(preferences)); } catch { /* Reading still works when storage is unavailable. */ }
+  bridge?.setPreferences?.(preferences).catch(() => {});
 }
 
 function applySettings() {
@@ -167,7 +170,7 @@ function applySettings() {
   byId('line-breaks').checked = state.breaks;
   byId('remote-images').checked = state.remoteImages;
   byId('profile-select').value = state.profile;
-  document.querySelectorAll('[data-view]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.view === state.view)));
+  document.querySelectorAll('button[data-view]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.view === state.view)));
   byId('theme-toggle').innerHTML = icon(state.theme === 'dark' ? 'sun' : 'moon');
   const themeLabel = `Switch to ${state.theme === 'dark' ? 'light' : 'dark'} theme`;
   byId('theme-toggle').title = themeLabel;
@@ -262,10 +265,10 @@ function updateDetails() {
 
   byId('details-content').innerHTML = `
     ${teamsNotes ? `<div class="detail-group"><h3>Last Teams copy</h3><p>Paste with Ctrl+V in the Teams desktop or web composer. Check the draft before sending. Plain-text paste removes formatting.</p>${teamsNotes.map(message => `<p>${escapeHtml(message)}</p>`).join('')}<p>Teams may simplify formatting. The Markdown document is unchanged.</p></div>` : ''}
-    <div class="detail-group"><span class="detail-label">INTERPRETATION</span><h3>${escapeHtml(selected?.label || state.profile)}</h3><p>${escapeHtml(selected?.description || 'A broad selection of Markdown extensions.')}</p></div>
-    <div class="detail-group"><span class="detail-label">DOCUMENT</span><dl class="document-facts"><dt>Name</dt><dd>${escapeHtml(state.doc.name)}</dd><dt>Encoding</dt><dd>${escapeHtml(state.doc.encoding || 'UTF-8')}</dd><dt>Words</dt><dd>${Number(result.stats?.words || 0).toLocaleString()}</dd><dt>Characters</dt><dd>${Number(result.stats?.characters || 0).toLocaleString()}</dd>${state.doc.path ? `<dt>Location</dt><dd class="detail-path">${escapeHtml(state.doc.path)}</dd>` : '<dt>Location</dt><dd>In-memory preview</dd>'}</dl></div>
-    ${metadata.length ? `<div class="detail-group"><span class="detail-label">FRONT MATTER</span><dl class="document-facts metadata-facts">${metadata.map(([key, value]) => `<dt>${escapeHtml(key)}</dt><dd>${escapeHtml(typeof value === 'object' ? JSON.stringify(value) : value)}</dd>`).join('')}</dl></div>` : ''}
-    <div class="detail-group"><span class="detail-label">COMPATIBILITY</span>${state.warnings.length ? state.warnings.map(warning => `<div class="compatibility-note"><span class="note-dot"></span><p>${escapeHtml(warning.message || warning)}</p></div>`).join('') : `<div class="compatibility-clear">${icon('check')}<span>No compatibility issues detected.</span></div><p class="detail-small">Rendering can vary between applications. Select a specific format for a closer match.</p>`}</div>`;
+    <div class="detail-group"><span class="detail-label">Interpretation</span><h3>${escapeHtml(selected?.label || state.profile)}</h3><p>${escapeHtml(selected?.description || 'A broad selection of Markdown extensions.')}</p></div>
+    <div class="detail-group"><span class="detail-label">Document</span><dl class="document-facts"><dt>Name</dt><dd>${escapeHtml(state.doc.name)}</dd><dt>Encoding</dt><dd>${escapeHtml(state.doc.encoding || 'UTF-8')}</dd><dt>Words</dt><dd>${Number(result.stats?.words || 0).toLocaleString()}</dd><dt>Characters</dt><dd>${Number(result.stats?.characters || 0).toLocaleString()}</dd>${state.doc.path ? `<dt>Location</dt><dd class="detail-path">${escapeHtml(state.doc.path)}</dd>` : '<dt>Location</dt><dd>In-memory preview</dd>'}</dl></div>
+    ${metadata.length ? `<div class="detail-group"><span class="detail-label">Front matter</span><dl class="document-facts metadata-facts">${metadata.map(([key, value]) => `<dt>${escapeHtml(key)}</dt><dd>${escapeHtml(typeof value === 'object' ? JSON.stringify(value) : value)}</dd>`).join('')}</dl></div>` : ''}
+    <div class="detail-group"><span class="detail-label">Compatibility</span>${state.warnings.length ? state.warnings.map(warning => `<div class="compatibility-note"><span class="note-dot"></span><p>${escapeHtml(warning.message || warning)}</p></div>`).join('') : `<div class="compatibility-clear">${icon('check')}<span>No compatibility issues detected.</span></div><p class="detail-small">Rendering can vary between applications. Select a specific format for a closer match.</p>`}</div>`;
   byId('warning-count').hidden = !(state.warnings.length || teamsNotes?.length);
   byId('warning-count').textContent = state.warnings.length + (teamsNotes?.length || 0);
 }
@@ -317,8 +320,7 @@ async function renderCurrent({ preserveScroll = false } = {}) {
     article.innerHTML = result.html;
     article.dataset.theme = state.theme;
     updateEditorState();
-    byId('document-location').textContent = state.doc === demoDocument || state.doc.welcome ? 'YOUR READING SPACE' : state.doc.path ? 'LOCAL DOCUMENT' : 'UNSAVED DOCUMENT';
-    byId('kicker-label').textContent = state.doc === demoDocument || state.doc.welcome ? 'THE FOLIO FIELD GUIDE' : 'A MOMENT TO READ';
+    byId('document-location').textContent = state.doc === demoDocument || state.doc.welcome ? 'On this device' : state.doc.path ? 'Local document' : 'Unsaved document';
     byId('word-count').textContent = `${Number(result.stats?.words || 0).toLocaleString()} words`;
     byId('reading-time').textContent = `${Math.max(1, Number(result.stats?.readingMinutes) || 1)} min read`;
     byId('format-status').textContent = profileLabel(state.profile);
@@ -557,7 +559,7 @@ byId('paste-submit').addEventListener('click', async () => {
 });
 byId('sidebar-toggle').addEventListener('click', () => { state.sidebar = !state.sidebar; applySettings(); persist(); });
 byId('sidebar-scrim').addEventListener('click', () => { state.sidebar = false; applySettings(); });
-document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => setView(button.dataset.view)));
+document.querySelectorAll('button[data-view]').forEach(button => button.addEventListener('click', () => setView(button.dataset.view)));
 byId('profile-select').addEventListener('change', event => { state.profile = event.target.value; persist(); render({ preserveScroll: true }); });
 byId('theme-toggle').addEventListener('click', () => { state.theme = state.theme === 'light' ? 'dark' : 'light'; applySettings(); persist(); render({ preserveScroll: true }); });
 byId('settings-toggle').addEventListener('click', () => togglePopover('settings-panel', 'settings-toggle'));
@@ -683,7 +685,8 @@ bridge?.onConflict?.(doc => {
 });
 bridge?.onCommand?.(command => {
   const action = typeof command === 'string' ? command : command?.command;
-  if (action === 'open' || action === 'open-file') openFile();
+  if (action === 'close') bridge.closeDocument({ content: state.doc.content, path: state.doc.path }).catch(error => notify(`Could not close: ${error}`, true));
+  else if (action === 'open' || action === 'open-file') openFile();
   else if (action === 'new') newDocument();
   else if (action === 'save') saveMarkdown();
   else if (action === 'save-as') saveMarkdown(true);

@@ -1,46 +1,24 @@
 # Development
 
-Use Windows x64, Node.js 22.22 or newer, npm, and Git. Run `npm ci` using the lockfile. If your environment disables dependency install scripts, run `node node_modules/electron/install.js` after reviewing that standard Electron installer.
-
-The npm package is marked private only to prevent accidental npm publication; Folio's application source is MIT open source.
+Use Windows x64, Node.js 22.22 or newer, Rust stable (MSVC, at least 1.90), Visual Studio C++ Build Tools with a Windows SDK, and Microsoft Edge WebView2. Install locked dependencies with npm ci. Folio is private in package.json only to prevent accidental npm publication; its source remains MIT.
 
 | Command | Purpose |
 | --- | --- |
-| npm run dev | Vite browser preview; native features require Electron |
-| npm run build | Compile the renderer into dist/ |
-| npm start | Launch the desktop app using the built renderer |
-| npm test | Renderer and filesystem regressions |
-| npm run test:desktop | Actual Electron viewer checks |
-| npm run test:editor | Electron editing, saving and conflict checks (1.1+) |
-| npm run test:teams | Teams clipboard IPC, conversion notes, latest edits and error handling |
-| npm run test:pdf | PDF dialog, profiles, preferences and pagination stress checks |
-| npm run package | Windows portable EXE and NSIS installer |
-| npm run release:assemble | Gather verified artifacts and source archive |
+| npm start | Tauri development window with Vite |
+| npm run dev | Browser-only frontend preview |
+| npm test | Markdown, security, PDF-profile and Teams converter regressions |
+| npm run test:rust | Rust filesystem/encoding tests |
+| npm run test:native-build | Build an isolated native test executable |
+| npm run test:desktop | Real WebView2 integration suite |
+| npm run package | Build production Rust EXE and NSIS installer |
+| node tests/production-smoke.cjs | Verify the production executable and absent test hooks |
+| node scripts/collect-licenses.mjs | Regenerate JavaScript and Rust dependency notices |
+| npm run release:assemble | Assemble tagged release assets and checksums |
 
-Build before running desktop tests. Tests use synthetic documents and isolated profiles under test-results/. Native dialog answers and clipboard writes are substituted; the renderer, IPC and filesystem still run. FOLIO_TEST_MODE=1 is reserved for test processes.
+The desktop suite writes synthetic fixtures and profiles under test-results/native. It substitutes dialog responses through a compile-time test feature; native saves, clipboard writes and PDF rendering remain real. Do not publish binaries built with test-harness. cargo build alone uses the development URL; use --features custom-protocol for an embedded frontend, or let the Tauri build CLI select it.
 
-## Packaged verification
+Production binaries are in src-tauri/target/release; the installer is in bundle/nsis beneath it. The portable EXE embeds the frontend and requires WebView2 already installed. The installer can obtain Microsoft's WebView2 bootstrapper when required. Neither format bundles Electron.
 
-```powershell
-npm test
-npm run package
-$env:FOLIO_TEST_EXECUTABLE = (Resolve-Path release/win-unpacked/Folio.exe).Path
-$env:FOLIO_TEST_RESULTS_DIR = Join-Path (Get-Location) 'test-results/packaged'
-npm run test:desktop
-$env:FOLIO_EDITOR_RESULTS = Join-Path (Get-Location) 'test-results/editor-packaged'
-npm run test:editor
-$env:FOLIO_PDF_RESULTS = Join-Path (Get-Location) 'test-results/pdf-packaged'
-npm run test:pdf
-$env:FOLIO_TEAMS_RESULTS = Join-Path (Get-Location) 'test-results/teams-packaged'
-npm run test:teams
-node tests/portable-smoke.cjs
-npm run release:assemble
-```
+The Windows CI has read-only repository permissions, runs both test layers, builds production artifacts and verifies the final runtime. It does not publish. Keep Cargo.lock and package-lock.json committed. Dependabot checks npm, Cargo and workflow dependencies. Update notices and corresponding-source archives when changing Viz.js/Graphviz.
 
-Release staging goes to release-assets/ and is ignored by Git. Commit the verified source and create an annotated version tag at HEAD before assembly. Assembly requires passing integration reports for the current version and produces SHA-256 checksums.
-
-## CI and dependencies
-
-The Windows workflow installs locked dependencies, tests, builds and verifies a packaged directory. It has read-only repository permissions, uploads diagnostic reports and does not publish releases. Actions are pinned to commit SHAs. Dependabot checks npm and workflow dependencies monthly; updates need review.
-
-When upgrading Viz.js/Graphviz, update source availability, license files and release source bundles together. Preserve supplemental notices in licenses/. See [licensing](licensing.md).
+For isolated verification or a portable profile, set FOLIO_DATA_DIR to an absolute local folder. Both recent files/preferences and WebView2 data stay there. Omit it for the normal Windows profile.

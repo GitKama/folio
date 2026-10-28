@@ -2,6 +2,20 @@
 
 The original reader was developed on 16 September 2026. The public repository was prepared on 21 September 2026. Commit/tag dates reflect public release preparation, not invented historical Git activity.
 
+## [2.0.0] — 2026-10-28
+
+Folio moves from Electron to a Rust/Tauri desktop host with Windows WebView2.
+
+- New document workbench with blue-gray navigation, a paper reading surface, clear view controls and light/dark themes.
+- Native Rust file handling, menus, dialogs, disk-conflict detection, clipboard writes and PDF exports.
+- Existing Markdown dialects, math, Mermaid/Graphviz, editing, HTML/PDF and Teams exports retained.
+- Safe temporary-file saves with encoding, BOM and line-ending preservation; ordered draft/save IPC.
+- Native Windows CF_HTML and Unicode clipboard formats for Teams.
+- Embedded frontend in the portable EXE; no bundled Electron/Chromium. WebView2 is required, and the installer can obtain it.
+- Compile-time-only test hooks, Rust regression tests, native integration checks and production-runtime verification.
+- Dependency security updates and regenerated Rust/JavaScript notices.
+- Recent files migrate from the legacy Folio profile; the old profile remains intact. Reading preferences use a separate 2.0 store.
+
 ## [1.3.0] — 2026-10-27
 
 Copy the current Markdown draft into the Microsoft Teams message composer.

@@ -1,9 +1,13 @@
 # Roadmap
 
-## Future Rust migration
+## Completed in 2.0: Rust desktop migration
 
-Folio is currently an Electron application. A migration to Rust is planned for a future project, as requested by the maintainer on 27 October 2026. It is not part of the 1.3 Teams clipboard release, and no migration schedule or replacement UI framework has been selected.
+Folio now uses Rust and Tauri with Windows WebView2. Electron has been removed. The new document workbench retains reading and source editing, Markdown profiles, math, diagrams, safe saves, HTML/PDF export and Teams clipboard conversion. JavaScript remains responsible for the bundled document-rendering engine.
 
-The migration should preserve the existing reading and editing workflow, Markdown compatibility, safe file saving, HTML/PDF exports, and Teams clipboard behavior. Reuse the synthetic fixtures and acceptance checks to compare implementations before replacing the shipped app. Packaging, settings compatibility and upgrade behavior need explicit validation.
+## Possible follow-ups
 
-Until that work is scoped and verified, the maintained application and releases continue to use Electron.
+- Additional client-by-client Teams paste validation, without claiming universal formatting parity.
+- Signed Windows releases when a signing identity is available.
+- Evaluate other desktop platforms after the Windows implementation is established.
+
+These are directions, not scheduled commitments. No automatic updater, document sync or cloud account is included.

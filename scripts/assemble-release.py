@@ -21,13 +21,7 @@ if git("status", "--porcelain"):
     raise RuntimeError("Commit the exact release source before assembling.")
 if git("rev-parse", tag + "^{commit}") != git("rev-parse", "HEAD"):
     raise RuntimeError("The version tag must point to HEAD.")
-reports = ["packaged/desktop-report.json", "portable/portable-report.json"]
-if "test:editor" in package["scripts"]:
-    reports.append("editor-packaged/editor-report.json")
-if "test:pdf" in package["scripts"]:
-    reports.append("pdf-packaged/pdf-report.json")
-if "test:teams" in package["scripts"]:
-    reports.append("teams-packaged/teams-report.json")
+reports = ["native/report.json", "production/report.json"]
 for report in reports:
     data = json.loads((root / "test-results" / report).read_text(encoding="utf-8"))
     if not data["passed"]:
@@ -35,9 +29,15 @@ for report in reports:
     if data.get("version") != version:
         raise RuntimeError("Verification is for a different version: " + report)
 
-for name in [f"Folio-{version}-win-x64.exe", f"Folio-{version}-Setup-x64.exe"]:
-    source = root / "release" / name
-    if source.stat().st_size < 10_000_000:
+artifacts = {
+    f"Folio-{version}-win-x64.exe": root / "src-tauri/target/release/folio.exe",
+    f"Folio-{version}-Setup-x64.exe": root / f"src-tauri/target/release/bundle/nsis/Folio_{version}_x64-setup.exe",
+}
+production = json.loads((root / "test-results/production/report.json").read_text(encoding="utf-8"))
+if production["sha256"] != hashlib.sha256(artifacts[f"Folio-{version}-win-x64.exe"].read_bytes()).hexdigest():
+    raise RuntimeError("Production verification does not match the release executable.")
+for name, source in artifacts.items():
+    if source.stat().st_size < 500_000:
         raise RuntimeError("Missing or truncated build: " + name)
     shutil.copy2(source, destination / name)
 

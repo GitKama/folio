@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "shadows": {"popover": "0 12px 40px #17274626", "dark-popover": "0 12px 40px #0005"},
+  "breakpoints": {"compact": "1150px", "drawer": "899px", "stacked": "639px"},
+  "motion": {"busy": "1.1s opacity pulse; disabled under prefers-reduced-motion"},
+  "narrative": {"northStar": "The document leads; tools stay quiet and predictable.", "rules": ["Use blue for state and action", "Preserve native editor conventions", "Use tonal layering before shadows"]}
+}

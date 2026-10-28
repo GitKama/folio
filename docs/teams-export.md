@@ -46,4 +46,4 @@ That verifies the tested desktop paste path, not every Teams client or message t
 - [Microsoft: Teams Markdown-style typing shortcuts](https://support.microsoft.com/en-gb/teams/chat/use-markdown-formatting-in-microsoft-teams)
 - [Microsoft: formatting messages](https://support.microsoft.com/en-us/teams/chat/format-a-message-in-microsoft-teams)
 - [Microsoft: Teams message limits](https://learn.microsoft.com/en-us/microsoftteams/limits-specifications-teams)
-- [Electron: clipboard API](https://www.electronjs.org/docs/latest/api/clipboard) and [ClipboardItem](https://www.electronjs.org/docs/latest/api/clipboard-item)
+- [Microsoft: HTML clipboard format](https://learn.microsoft.com/en-us/windows/win32/dataxchg/html-clipboard-format)

@@ -1,14 +1,14 @@
 .folio-document {
-  --doc-text: #3f4840;
-  --doc-heading: #273a31;
-  --doc-muted: #7b867c;
-  --doc-accent: #37785b;
-  --doc-line: #e0e4d9;
-  --doc-soft: #f0f2ea;
-  --doc-code-bg: #eff1e9;
-  --doc-code-text: #496448;
-  --doc-code-block: #263630;
-  --doc-code-fg: #dce4d8;
+  --doc-text: #36435b;
+  --doc-heading: #233451;
+  --doc-muted: #627089;
+  --doc-accent: #305cce;
+  --doc-line: #dce2ee;
+  --doc-soft: #eef2fa;
+  --doc-code-bg: #edf1fa;
+  --doc-code-text: #365486;
+  --doc-code-block: #24314a;
+  --doc-code-fg: #e1eafa;
   color: var(--doc-text);
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: var(--document-font-size, 17px);
@@ -18,21 +18,21 @@
   min-width: 0;
 }
 [data-theme='dark'] .folio-document, .folio-document[data-theme='dark'] {
-  --doc-text: #c7d1c3;
-  --doc-heading: #e4ecdf;
-  --doc-muted: #9aa995;
-  --doc-accent: #a3c7a2;
-  --doc-line: #3c493b;
-  --doc-soft: #2c382d;
-  --doc-code-bg: #304333;
-  --doc-code-text: #c6ddbb;
-  --doc-code-block: #19291f;
-  --doc-code-fg: #d9e7d1;
+  --doc-text: #cbd6ea;
+  --doc-heading: #f0f4ff;
+  --doc-muted: #abbad3;
+  --doc-accent: #adc5ff;
+  --doc-line: #3b4c66;
+  --doc-soft: #28374d;
+  --doc-code-bg: #30435f;
+  --doc-code-text: #c5d7f9;
+  --doc-code-block: #172235;
+  --doc-code-fg: #e0ebff;
 }
 .folio-document > :first-child { margin-top: 0; }
 .folio-document > :last-child { margin-bottom: 0; }
 .folio-document h1, .folio-document h2, .folio-document h3, .folio-document h4, .folio-document h5, .folio-document h6 { color: var(--doc-heading); line-height: 1.35; scroll-margin-top: 30px; font-weight: 600; }
-.folio-document h1 { font-family: Georgia, 'Times New Roman', serif; font-size: 2.65em; font-weight: 400; line-height: 1.13; letter-spacing: -.06em; margin: 1.2em 0 .65em; }
+.folio-document h1 { font-family: Georgia, 'Times New Roman', serif; font-size: 2.65em; font-weight: 400; line-height: 1.13; letter-spacing: -.03em; margin: 1.2em 0 .65em; }
 .folio-document > h1:first-child { margin: 0 0 .6em; max-width: 12.8em; }
 .folio-document h2 { font-size: 1.25em; margin: 2.3em 0 .8em; letter-spacing: -.035em; }
 .folio-document h3 { font-size: 1.1em; margin: 2em 0 .65em; letter-spacing: -.015em; }
